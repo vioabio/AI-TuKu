@@ -1,0 +1,21 @@
+# 自动检测文本文件并标准化换行符
+* text=auto
+
+# 以下文件始终使用 LF (适用于 Linux 服务器部署)
+*.java text eol=lf
+*.properties text eol=lf
+*.xml text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.md text eol=lf
+.gitignore text eol=lf
+.gitattributes text eol=lf
+*.sh text eol=lf
+
+# 二进制文件不做转换
+*.jar binary
+*.class binary
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
