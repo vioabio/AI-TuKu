@@ -5,9 +5,9 @@ server:
     context-path: /api
 spring:
   application:
-    name: vio-tuku
+    name: vio_tuku
   datasource:
-    url: jdbc:mysql://localhost:3306/vio-tuku
+    url: jdbc:mysql://localhost:3306/vio_tuku
     username: root
     password: '@087174Ab'
 mybatis-plus:
