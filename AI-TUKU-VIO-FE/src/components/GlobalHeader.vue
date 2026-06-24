@@ -22,7 +22,7 @@
       <!-- 登录组件 -->
       <div class="user-login-status">
         <div v-if="loginUserStore.loginUser.id">
-          {{ loginUserStore.loginUser.username }}
+          {{ loginUserStore.loginUser.userName }}
         </div>
         <div v-else>
           <a-button type="primary" herf="/user/login">登录</a-button>
