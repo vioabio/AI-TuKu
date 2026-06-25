@@ -115,7 +115,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     @Override
     public String getEncryptPassword(String userPassword) {
         // 加盐，混淆密码
-        final String SALT = "yupi";
+        final String SALT = "vio";
         return DigestUtils.md5DigestAsHex((SALT + userPassword).getBytes());
     }
 
