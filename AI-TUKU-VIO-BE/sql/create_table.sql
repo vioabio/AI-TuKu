@@ -41,9 +41,9 @@ create table if not exists picture
     editTime     datetime default CURRENT_TIMESTAMP not null comment '编辑时间',
     updateTime   datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
     isDelete     tinyint  default 0                 not null comment '是否删除',
-    INDEX idx_name (name),                 -- 提升基于图片名称的查询性能
-    INDEX idx_introduction (introduction), -- 用于模糊搜索图片简介
-    INDEX idx_category (category),         -- 提升基于分类的查询性能
-    INDEX idx_tags (tags),                 -- 提升基于标签的查询性能
-    INDEX idx_userId (userId)              -- 提升基于用户 ID 的查询性能
+    INDEX idx_name (name),                    -- 提升基于图片名称的查询性能
+    INDEX idx_introduction (introduction(191)), -- 用于模糊搜索图片简介 (前缀索引，兼容 MySQL 5.6 767字节限制)
+    INDEX idx_category (category),            -- 提升基于分类的查询性能
+    INDEX idx_tags (tags(191)),               -- 提升基于标签的查询性能 (前缀索引，兼容 MySQL 5.6 767字节限制)
+    INDEX idx_userId (userId)                 -- 提升基于用户 ID 的查询性能
 ) comment '图片' collate = utf8mb4_unicode_ci;
