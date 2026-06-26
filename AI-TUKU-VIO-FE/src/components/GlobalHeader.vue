@@ -74,6 +74,11 @@ const originItems = [
     title: '用户管理',
   },
   {
+    key: '/add_picture',
+    label: '创建图片',
+    title: '创建图片',
+  },
+  {
     key:"others",
     label: h('a', { href: 'https://github.com/vioabio', target: '_blank' }, '作者'),
     title: '作者'

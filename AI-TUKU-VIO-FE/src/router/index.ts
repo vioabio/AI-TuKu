@@ -25,6 +25,11 @@ const router = createRouter({
       component: () => import('../pages/admin/UserManagePage.vue'),
     },
     {
+      path: '/add_picture',
+      name: '创建图片',
+      component: () => import('../pages/AddPicturePage.vue')
+    },
+    {
       path: '/about',
       name: 'about',
       // route level code-splitting
