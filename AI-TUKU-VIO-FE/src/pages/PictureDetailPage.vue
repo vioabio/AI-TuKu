@@ -82,7 +82,7 @@
 </template>
 
 <script setup lang="ts">
-import { h, onMounted, ref } from 'vue'
+import { computed, h, onMounted, ref } from 'vue'
 import { deletePictureUsingPost, getPictureVoByIdUsingGet } from '@/api/pictureController.ts'
 import { message } from 'ant-design-vue'
 import {
@@ -91,6 +91,7 @@ import {
   EditOutlined,
 } from '@ant-design/icons-vue'
 import { useRouter } from 'vue-router'
+import { useLoginUserStore } from '@/stores/useLoginUserStore'
 import { downloadImage, formatSize, toHexColor } from '@/components/utils'
 
 
@@ -123,6 +124,23 @@ onMounted(() => {
 })
 
 const router = useRouter()
+const loginUserStore = useLoginUserStore()
+
+// 编辑权限：仅本人或管理员可编辑
+const canEdit = computed(() => {
+  const loginUser = loginUserStore.loginUser
+  if (!loginUser?.id) return false
+  const user = picture.value.user || {}
+  return loginUser.id === user.id || loginUser.userRole === 'admin'
+})
+
+// 删除权限：仅本人或管理员可删除
+const canDelete = computed(() => {
+  const loginUser = loginUserStore.loginUser
+  if (!loginUser?.id) return false
+  const user = picture.value.user || {}
+  return loginUser.id === user.id || loginUser.userRole === 'admin'
+})
 
 // 编辑
 const doEdit = () => {

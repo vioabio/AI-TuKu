@@ -59,29 +59,45 @@ public class FileManager {
         File file = null;
         try {
             // 上传文件
-            file = File.createTempFile(uploadPath, null);
+            String fileSuffix = "." + FileUtil.getSuffix(originalFilename);
+            file = File.createTempFile("picture_upload_", fileSuffix);
+            log.info("临时文件创建成功: {}", file.getAbsolutePath());
             multipartFile.transferTo(file);
+            log.info("文件写入临时目录成功, 大小: {} bytes", file.length());
             PutObjectResult putObjectResult = cosManager.putPictureObject(uploadPath, file);
-            // 获取图片信息对象
-            ImageInfo imageInfo = putObjectResult.getCiUploadResult().getOriginalInfo().getImageInfo();
-            // 计算宽高
-            int picWidth = imageInfo.getWidth();
-            int picHeight = imageInfo.getHeight();
-            double picScale = NumberUtil.round(picWidth * 1.0 / picHeight, 2).doubleValue();
             // 封装返回结果
             UploadPictureResult uploadPictureResult = new UploadPictureResult();
-            uploadPictureResult.setUrl(cosClientConfig.getHost() + "/" + uploadPath);
+            uploadPictureResult.setUrl(cosClientConfig.getHost() + uploadPath);
             uploadPictureResult.setPicName(FileUtil.mainName(originalFilename));
             uploadPictureResult.setPicSize(FileUtil.size(file));
-            uploadPictureResult.setPicWidth(picWidth);
-            uploadPictureResult.setPicHeight(picHeight);
-            uploadPictureResult.setPicScale(picScale);
-            uploadPictureResult.setPicFormat(imageInfo.getFormat());
+            // 尝试从CI获取图片信息（万象CI角色未配置时会降级，CI结果为空）
+            if (putObjectResult.getCiUploadResult() != null
+                    && putObjectResult.getCiUploadResult().getOriginalInfo() != null
+                    && putObjectResult.getCiUploadResult().getOriginalInfo().getImageInfo() != null) {
+                ImageInfo imageInfo = putObjectResult.getCiUploadResult().getOriginalInfo().getImageInfo();
+                int picWidth = imageInfo.getWidth();
+                int picHeight = imageInfo.getHeight();
+                double picScale = NumberUtil.round(picWidth * 1.0 / picHeight, 2).doubleValue();
+                uploadPictureResult.setPicWidth(picWidth);
+                uploadPictureResult.setPicHeight(picHeight);
+                uploadPictureResult.setPicScale(picScale);
+                uploadPictureResult.setPicFormat(imageInfo.getFormat());
+            } else {
+                // CI不可用时，使用文件扩展名作为格式
+                uploadPictureResult.setPicFormat(FileUtil.getSuffix(originalFilename));
+            }
+            // 设置缩略图地址（保留目录路径，仅替换扩展名）
+            String thumbnailPath = uploadPath.substring(0, uploadPath.lastIndexOf('.')) + "_thumbnail." + FileUtil.getSuffix(uploadPath);
+            uploadPictureResult.setThumbnailUrl(cosClientConfig.getHost() + thumbnailPath);
             // 返回可访问的地址
             return uploadPictureResult;
         } catch (Exception e) {
             log.error("图片上传到对象存储失败", e);
-            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "上传失败");
+            String errMsg = e.getMessage();
+            if (errMsg == null || errMsg.isEmpty()) {
+                errMsg = e.getClass().getSimpleName();
+            }
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "上传失败: " + errMsg);
         } finally {
             // 临时文件清理
             this.deleteTempFile(file);
@@ -99,7 +115,7 @@ public class FileManager {
         // 1. 校验文件大小
         long fileSize = multipartFile.getSize();
         final long ONE_M = 1024 * 1024;
-        ThrowUtils.throwIf(fileSize > 2 * ONE_M, ErrorCode.PARAMS_ERROR, "文件大小不能超过 2MB");
+        ThrowUtils.throwIf(fileSize > 20 * ONE_M, ErrorCode.PARAMS_ERROR, "文件大小不能超过 20MB");
         // 2. 校验文件后缀
         String fileSuffix = FileUtil.getSuffix(multipartFile.getOriginalFilename());
         // 允许上传的文件后缀列表（或者集合）
