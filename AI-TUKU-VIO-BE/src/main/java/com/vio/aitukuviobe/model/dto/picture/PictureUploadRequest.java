@@ -6,13 +6,13 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- * 图片更新请求
+ * 图片上传请求
  */
 @Data
 public class PictureUploadRequest implements Serializable {
 
     /**
-     * id
+     * id（用于修改）
      */
     private Long id;
 
@@ -20,6 +20,11 @@ public class PictureUploadRequest implements Serializable {
      * 图片名称
      */
     private String name;
+
+    /**
+     * 图片名称（用于批量上传时的自定义命名）
+     */
+    private String picName;
 
     /**
      * 简介
@@ -35,6 +40,11 @@ public class PictureUploadRequest implements Serializable {
      * 标签
      */
     private List<String> tags;
+
+    /**
+     * 文件地址（URL 上传时使用）
+     */
+    private String fileUrl;
 
     private static final long serialVersionUID = 1L;
 }

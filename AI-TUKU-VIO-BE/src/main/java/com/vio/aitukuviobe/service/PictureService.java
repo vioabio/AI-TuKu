@@ -5,6 +5,8 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.vio.aitukuviobe.model.dto.picture.PictureEditRequest;
 import com.vio.aitukuviobe.model.dto.picture.PictureQueryRequest;
+import com.vio.aitukuviobe.model.dto.picture.PictureReviewRequest;
+import com.vio.aitukuviobe.model.dto.picture.PictureUploadByBatchRequest;
 import com.vio.aitukuviobe.model.dto.picture.PictureUploadRequest;
 import com.vio.aitukuviobe.model.entity.Picture;
 import com.vio.aitukuviobe.model.entity.User;
@@ -24,11 +26,39 @@ public interface PictureService extends IService<Picture> {
     void validPicture(Picture picture);
 
     /**
-     * 上传图片
+     * 上传图片（支持本地文件和 URL）
      */
-    PictureVO uploadPicture(MultipartFile multipartFile,
+    PictureVO uploadPicture(Object inputSource,
                             PictureUploadRequest pictureUploadRequest,
                             User loginUser);
+
+    /**
+     * 图片审核
+     *
+     * @param pictureReviewRequest 审核请求
+     * @param loginUser            当前登录用户
+     */
+    void doPictureReview(PictureReviewRequest pictureReviewRequest, User loginUser);
+
+    /**
+     * 补充审核参数
+     *
+     * @param picture   图片
+     * @param loginUser 当前登录用户
+     */
+    void fillReviewParams(Picture picture, User loginUser);
+
+    /**
+     * 批量抓取和创建图片
+     *
+     * @param pictureUploadByBatchRequest 批量请求
+     * @param loginUser                   当前登录用户
+     * @return 成功创建的图片数
+     */
+    Integer uploadPictureByBatch(
+            PictureUploadByBatchRequest pictureUploadByBatchRequest,
+            User loginUser
+    );
 
     /**
      * 获取图片包装类（单条）
