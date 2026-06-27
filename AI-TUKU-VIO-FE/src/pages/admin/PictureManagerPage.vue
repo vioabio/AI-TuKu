@@ -113,10 +113,16 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import {
   deletePictureUsingPost,
+  doPictureReviewUsingPost,
   listPictureByPageUsingPost,
 } from '@/api/pictureController.ts'
 import { message } from 'ant-design-vue'
 import dayjs from 'dayjs'
+import {
+  PIC_REVIEW_STATUS_ENUM,
+  PIC_REVIEW_STATUS_MAP,
+  PIC_REVIEW_STATUS_OPTIONS,
+} from '@/constants/picture'
 
 const columns = [
   {
@@ -248,27 +254,21 @@ const doDelete = async (id: string) => {
   }
 }
 
-// TODO: 审核功能待后端接口开发
-const PIC_REVIEW_STATUS_ENUM = {
-  PASS: 1,
-  REJECT: 2,
-}
-
-const PIC_REVIEW_STATUS_MAP: Record<number, string> = {
-  0: '待审核',
-  1: '通过',
-  2: '拒绝',
-}
-
-const PIC_REVIEW_STATUS_OPTIONS = [
-  { value: 0, label: '待审核' },
-  { value: 1, label: '通过' },
-  { value: 2, label: '拒绝' },
-]
-
-const handleReview = async (record: API.Picture, status: number) => {
-  // TODO: 后端审核接口尚未开发
-  message.info('审核功能待开发')
+const handleReview = async (record: API.Picture, reviewStatus: number) => {
+  const reviewMessage =
+    reviewStatus === PIC_REVIEW_STATUS_ENUM.PASS ? '管理员操作通过' : '管理员操作拒绝'
+  const res = await doPictureReviewUsingPost({
+    id: record.id,
+    reviewStatus,
+    reviewMessage,
+  })
+  if (res.data.code === 0) {
+    message.success('审核操作成功')
+    // 刷新列表
+    fetchData()
+  } else {
+    message.error('审核操作失败，' + res.data.message)
+  }
 }
 
 </script>
