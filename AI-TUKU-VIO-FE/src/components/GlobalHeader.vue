@@ -29,12 +29,6 @@
               </a-space>
               <template #overlay>
                 <a-menu>
-                  <a-menu-item>
-                    <router-link to="/my_space">
-                      <UserOutlined />
-                      我的空间
-                    </router-link>
-                  </a-menu-item>
                   <a-menu-item @click="doLogout">
                     <LogoutOutlined />
                     退出登录
@@ -44,7 +38,7 @@
             </a-dropdown>
         </div>
         <div v-else>
-          <a-button type="primary" herf="/user/login">登录</a-button>
+          <a-button type="primary" href="/user/login">登录</a-button>
         </div>
       </div>
     </a-col>
@@ -78,6 +72,11 @@ const originItems = [
     label: '创建图片',
     title: '创建图片',
   },
+  {
+      path: '/admin/pictureManage',
+      name: '图片管理',
+      title: '图片管理',
+    },
   {
     key:"others",
     label: h('a', { href: 'https://github.com/vioabio', target: '_blank' }, '作者'),
