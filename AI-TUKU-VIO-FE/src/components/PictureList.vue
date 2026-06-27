@@ -11,9 +11,10 @@
           <!-- 单张图片 -->
           <a-card hoverable @click="doClickPicture(picture)">
             <template #cover>
-              <img
+              <a-image
                 :alt="picture.name"
                 :src="picture.thumbnailUrl ?? picture.url"
+                :preview="{ src: picture.url }"
                 style="height: 180px; object-fit: cover"
               />
             </template>

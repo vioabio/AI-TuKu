@@ -52,7 +52,11 @@
     >
       <template #bodyCell="{ column, record }">
         <template v-if="column.dataIndex === 'url'">
-          <a-image :src="record.url" :width="120" />
+          <a-image
+            :src="record.thumbnailUrl ?? record.url"
+            :preview="{ src: record.url }"
+            :width="120"
+          />
         </template>
         <template v-if="column.dataIndex === 'tags'">
           <a-space wrap>
