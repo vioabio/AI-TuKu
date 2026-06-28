@@ -92,8 +92,8 @@ const createTask = async () => {
   const res = await createPictureOutPaintingTaskUsingPost({
     pictureId: props.picture.id,
     parameters: {
-      xScale: 2,
-      yScale: 2,
+      x_scale: 2,
+      y_scale: 2,
     },
   })
   if (res.data.code === 0 && res.data.data?.output?.taskId) {

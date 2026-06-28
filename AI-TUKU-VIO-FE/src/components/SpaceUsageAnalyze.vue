@@ -26,7 +26,7 @@ import { getSpaceUsageAnalyzeUsingPost } from '@/api/spaceAnalyzeController'
 import { formatSize } from '@/components/utils'
 
 interface Props {
-  spaceId?: string
+  spaceId?: number
   queryAll?: boolean
   queryPublic?: boolean
 }

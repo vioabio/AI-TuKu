@@ -76,7 +76,7 @@ const doClickPicture = (picture: API.PictureVO) => {
 }
 
 // 编辑
-const doEdit = (picture, e) => {
+const doEdit = (picture: API.PictureVO, e: Event) => {
   // 阻止冒泡
   e.stopPropagation()
   // 跳转时一定要携带 spaceId
@@ -90,7 +90,7 @@ const doEdit = (picture, e) => {
 }
 
 // 删除数据
-const doDelete = async (picture, e) => {
+const doDelete = async (picture: API.PictureVO, e: Event) => {
   // 阻止冒泡
   e.stopPropagation()
   const id = picture.id

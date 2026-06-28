@@ -19,12 +19,10 @@ export const PIC_REVIEW_STATUS_MAP: Record<number, string> = {
 /**
  * 图片审核下拉表单选项
  */
-export const PIC_REVIEW_STATUS_OPTIONS = Object.keys(PIC_REVIEW_STATUS_MAP).map((key) => {
-  return {
-    label: PIC_REVIEW_STATUS_MAP[key],
-    value: key,
-  }
-})
+export const PIC_REVIEW_STATUS_OPTIONS = Object.entries(PIC_REVIEW_STATUS_MAP).map(([key, label]) => ({
+  label,
+  value: Number(key),
+}))
 
 // ========== 图片协同编辑 ==========
 export const PICTURE_EDIT_MESSAGE_TYPE_ENUM = {

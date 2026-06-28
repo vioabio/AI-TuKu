@@ -14,29 +14,6 @@
         <UrlPictureUpload :picture="picture" :spaceId="spaceId" :onSuccess="onSuccess" />
       </a-tab-pane>
     </a-tabs>
-    <!-- 图片编辑工具栏 -->
-    <div v-if="picture" class="edit-bar">
-      <a-space size="middle">
-        <a-button :icon="h(EditOutlined)" @click="doEditPicture">编辑图片</a-button>
-        <a-button type="primary" ghost :icon="h(FullscreenOutlined)" @click="doImagePainting">
-          AI 扩图
-        </a-button>
-      </a-space>
-      <ImageCropper
-        ref="imageCropperRef"
-        :imageUrl="picture?.url"
-        :picture="picture"
-        :spaceId="spaceId"
-        :space="space"
-        :onSuccess="onCropSuccess"
-      />
-      <ImageOutPainting
-        ref="imageOutPaintingRef"
-        :picture="picture"
-        :spaceId="spaceId"
-        :onSuccess="onImageOutPaintingSuccess"
-      />
-    </div>
     <!-- 图片信息表单 -->
     <a-form
       v-if="picture"
@@ -83,17 +60,13 @@
 <script setup lang="ts">
 import PictureUpload from '@/components/PictureUpload.vue'
 import UrlPictureUpload from '@/components/UrlPictureUpload.vue'
-import ImageCropper from '@/components/ImageCropper.vue'
-import ImageOutPainting from '@/components/ImageOutPainting.vue'
-import { h, onMounted, reactive, ref, watchEffect } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { message } from 'ant-design-vue'
-import { EditOutlined, FullscreenOutlined } from '@ant-design/icons-vue'
 import {
   editPictureUsingPost,
   getPictureVoByIdUsingGet,
   listPictureTagCategoryUsingGet,
 } from '@/api/pictureController.ts'
-import { getSpaceVoByIdUsingGet } from '@/api/spaceController.ts'
 import { useRoute, useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -103,28 +76,11 @@ const picture = ref<API.PictureVO>()
 const pictureForm = reactive<API.PictureEditRequest>({})
 const uploadType = ref<'file' | 'url'>('file')
 
-// 获取空间 id（从 URL 查询参数，保留字符串避免 Snowflake ID 精度丢失）
-const spaceId = route.query?.spaceId as string | undefined
-
-// 空间信息（用于协同编辑判断）
-const space = ref<API.SpaceVO>()
-
-const fetchSpace = async () => {
-  if (spaceId) {
-    const res = await getSpaceVoByIdUsingGet({ id: spaceId })
-    if (res.data.code === 0 && res.data.data) {
-      space.value = res.data.data
-    }
-  }
-}
-
-watchEffect(() => { fetchSpace() })
-
-// 图片编辑弹窗引用
-const imageCropperRef = ref()
-
-// AI 扩图弹窗引用
-const imageOutPaintingRef = ref()
+// 获取空间 id（从 URL 查询参数）
+const spaceId = computed<number | undefined>(() => {
+  const val = route.query?.spaceId
+  return val != null ? Number(val) : undefined
+})
 
 /**
  * 图片上传成功
@@ -135,37 +91,14 @@ const onSuccess = (newPicture: API.PictureVO) => {
   pictureForm.name = newPicture.name
 }
 
-// 编辑图片
-const doEditPicture = () => {
-  if (imageCropperRef.value) {
-    imageCropperRef.value.openModal()
-  }
-}
-
-// 编辑成功事件
-const onCropSuccess = (newPicture: API.PictureVO) => {
-  picture.value = newPicture
-}
-
-// AI 扩图
-const doImagePainting = () => {
-  if (imageOutPaintingRef.value) {
-    imageOutPaintingRef.value.openModal()
-  }
-}
-
-// AI 扩图成功事件
-const onImageOutPaintingSuccess = (newPicture: API.PictureVO) => {
-  picture.value = newPicture
-}
-
 /**
  * 提交表单
  * @param values
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const handleSubmit = async (values: any) => {
   console.log(values)
-  const pictureId = picture.value.id
+  const pictureId = picture.value?.id
   if (!pictureId) {
     return
   }
@@ -185,8 +118,12 @@ const handleSubmit = async (values: any) => {
   }
 }
 
-const categoryOptions = ref<string[]>([])
-const tagOptions = ref<string[]>([])
+interface OptionItem {
+  value: string
+  label: string
+}
+const categoryOptions = ref<OptionItem[]>([])
+const tagOptions = ref<OptionItem[]>([])
 
 /**
  * 获取标签和分类选项
@@ -222,7 +159,7 @@ const getOldPicture = async () => {
   const id = route.query?.id
   if (id) {
     const res = await getPictureVoByIdUsingGet({
-      id,
+      id: Number(id),
     })
     if (res.data.code === 0 && res.data.data) {
       const data = res.data.data
@@ -244,10 +181,5 @@ onMounted(() => {
 #addPicturePage {
   max-width: 720px;
   margin: 0 auto;
-}
-
-#addPicturePage .edit-bar {
-  text-align: center;
-  margin: 16px 0;
 }
 </style>

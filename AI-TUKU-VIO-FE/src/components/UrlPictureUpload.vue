@@ -38,7 +38,7 @@ const handleUpload = async () => {
   loading.value = true
   try {
     const params: API.PictureUploadRequest = { fileUrl: fileUrl.value }
-    params.spaceId = props.spaceId
+    params.spaceId = props.spaceId != null ? Number(props.spaceId) : undefined
     if (props.picture) {
       params.id = props.picture.id
     }
@@ -52,7 +52,7 @@ const handleUpload = async () => {
     }
   } catch (error) {
     console.error('图片上传失败', error)
-    message.error('图片上传失败，' + error.message)
+    message.error('图片上传失败，' + (error as Error).message)
   }
   loading.value = false
 }

@@ -44,7 +44,7 @@ import SpaceRankAnalyze from '@/components/SpaceRankAnalyze.vue'
 
 const route = useRoute()
 
-const spaceId = computed(() => route.query?.spaceId as string)
+const spaceId = computed(() => Number(route.query?.spaceId) || 0)
 const queryAll = computed(() => !!route.query?.queryAll)
 const queryPublic = computed(() => !!route.query?.queryPublic)
 

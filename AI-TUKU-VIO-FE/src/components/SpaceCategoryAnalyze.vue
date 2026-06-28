@@ -14,7 +14,7 @@ import { message } from 'ant-design-vue'
 import { getSpaceCategoryAnalyzeUsingPost } from '@/api/spaceAnalyzeController'
 
 interface Props {
-  spaceId?: string
+  spaceId?: number
   queryAll?: boolean
   queryPublic?: boolean
 }

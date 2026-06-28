@@ -22,7 +22,7 @@ import { message } from 'ant-design-vue'
 import { getSpaceUserAnalyzeUsingPost } from '@/api/spaceAnalyzeController'
 
 interface Props {
-  spaceId?: string
+  spaceId?: number
   queryAll?: boolean
   queryPublic?: boolean
 }

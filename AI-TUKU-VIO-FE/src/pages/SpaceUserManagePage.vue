@@ -50,11 +50,11 @@
 import { onMounted, reactive, ref } from 'vue'
 import { message } from 'ant-design-vue'
 import { useRoute } from 'vue-router'
-import { listSpaceUserUsingPost, addSpaceUserUsingPost, deleteSpaceUserUsingPost, editSpaceUserUsingPost } from '@/api/spaceController'
+import { listSpaceUserUsingPost, addSpaceUserUsingPost, deleteSpaceUserUsingPost, editSpaceUserUsingPost } from '@/api/spaceUserController'
 import { SPACE_ROLE_OPTIONS, SPACE_ROLE_MAP } from '@/constants/space'
 
 const route = useRoute()
-const spaceId = route.params.id as string
+const spaceId = Number(route.params.id) || 0
 
 const dataList = ref<any[]>([])
 const loading = ref(false)

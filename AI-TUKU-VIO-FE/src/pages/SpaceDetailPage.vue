@@ -65,7 +65,7 @@ const searchParams = reactive<API.PictureQueryRequest>({
 
 const fetchSpaceDetail = async () => {
   try {
-    const res = await getSpaceVoByIdUsingGet({ id: props.id })
+    const res = await getSpaceVoByIdUsingGet({ id: Number(props.id) })
     if (res.data.code === 0 && res.data.data) {
       space.value = res.data.data
     } else {

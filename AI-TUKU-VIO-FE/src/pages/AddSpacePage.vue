@@ -96,7 +96,7 @@ const fetchOldSpace = async () => {
   }
 }
 
-const formatSize = (size: number) => {
+const formatSize = (size?: number) => {
   if (!size) return '0 B'
   if (size < 1024) return size + ' B'
   if (size < 1024 * 1024) return (size / 1024).toFixed(1) + ' KB'
