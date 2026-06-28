@@ -98,7 +98,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
         // 权限校验：非管理员只能创建普通级别的空间
         if (SpaceLevelEnum.COMMON.getValue() != spaceAddRequest.getSpaceLevel()
                 && !userService.isAdmin(loginUser)) {
-            throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "无权限创建指定级别的空间");
+            throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "暂无权限");
         }
         // 针对用户加锁（同一用户只能创建一个私有空间）
         String lock = String.valueOf(userId).intern();
@@ -145,7 +145,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
         queryWrapper.eq(ObjUtil.isNotEmpty(userId), "userId", userId);
         queryWrapper.like(StrUtil.isNotBlank(spaceName), "spaceName", spaceName);
         queryWrapper.eq(ObjUtil.isNotEmpty(spaceLevel), "spaceLevel", spaceLevel);
-        queryWrapper.orderBy(StrUtil.isNotEmpty(sortField), sortOrder.equals("ascend"), sortField);
+        queryWrapper.orderBy(StrUtil.isNotEmpty(sortField), "ascend".equals(sortOrder), sortField);
         return queryWrapper;
     }
 

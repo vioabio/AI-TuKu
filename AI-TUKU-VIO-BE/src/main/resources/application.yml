@@ -54,5 +54,5 @@ knife4j:
 #    bucket: xxx
 
 ## 阿里云 AI 配置
-#aliYunAi:
-#  apiKey: xxx
+aliYunAi:
+  apiKey: your-api-key

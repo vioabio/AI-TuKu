@@ -39,9 +39,7 @@ import { message } from 'ant-design-vue'
 import { getSpaceVoByIdUsingGet } from '@/api/spaceController.ts'
 import { listPictureVoByPageUsingPost } from '@/api/pictureController.ts'
 import PictureList from '@/components/PictureList.vue'
-import { useRoute } from 'vue-router'
 
-const route = useRoute()
 const props = defineProps<{ id: string | number }>()
 
 const space = ref<API.SpaceVO>({})
@@ -57,23 +55,31 @@ const searchParams = reactive<API.PictureQueryRequest>({
 })
 
 const fetchSpaceDetail = async () => {
-  const res = await getSpaceVoByIdUsingGet({ id: Number(props.id) })
-  if (res.data.code === 0 && res.data.data) {
-    space.value = res.data.data
-  } else {
-    message.error('获取空间详情失败，' + res.data.message)
+  try {
+    const res = await getSpaceVoByIdUsingGet({ id: props.id })
+    if (res.data.code === 0 && res.data.data) {
+      space.value = res.data.data
+    } else {
+      message.error('获取空间详情失败，' + res.data.message)
+    }
+  } catch (error: any) {
+    message.error('获取空间详情失败，' + (error?.message || '网络异常'))
   }
 }
 
 const fetchData = async () => {
   loading.value = true
-  const params = { spaceId: Number(props.id), ...searchParams, nullSpaceId: false }
-  const res = await listPictureVoByPageUsingPost(params as any)
-  if (res.data.code === 0 && res.data.data) {
-    dataList.value = res.data.data.records ?? []
-    total.value = res.data.data.total ?? 0
-  } else {
-    message.error('获取数据失败，' + res.data.message)
+  try {
+    const params = { spaceId: props.id, ...searchParams, nullSpaceId: false }
+    const res = await listPictureVoByPageUsingPost(params as any)
+    if (res.data.code === 0 && res.data.data) {
+      dataList.value = res.data.data.records ?? []
+      total.value = res.data.data.total ?? 0
+    } else {
+      message.error('获取数据失败，' + res.data.message)
+    }
+  } catch (error: any) {
+    message.error('获取数据失败，' + (error?.message || '网络异常'))
   }
   loading.value = false
 }

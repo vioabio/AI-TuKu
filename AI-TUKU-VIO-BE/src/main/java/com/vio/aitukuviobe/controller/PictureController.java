@@ -1,6 +1,7 @@
 package com.vio.aitukuviobe.controller;
 
 import cn.hutool.core.util.RandomUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.github.benmanes.caffeine.cache.Cache;
@@ -13,6 +14,7 @@ import com.vio.aitukuviobe.constant.UserConstant;
 import com.vio.aitukuviobe.exception.BusinessException;
 import com.vio.aitukuviobe.exception.ErrorCode;
 import com.vio.aitukuviobe.exception.ThrowUtils;
+import com.vio.aitukuviobe.manager.AliYunAiApi;
 import com.vio.aitukuviobe.model.dto.picture.*;
 import com.vio.aitukuviobe.model.entity.Picture;
 import com.vio.aitukuviobe.model.entity.User;
@@ -45,6 +47,9 @@ public class PictureController {
 
     @Resource
     private PictureService pictureService;
+
+    @Resource
+    private AliYunAiApi aliYunAiApi;
 
     @Resource
     private StringRedisTemplate stringRedisTemplate;
@@ -175,9 +180,13 @@ public class PictureController {
         // 查询数据库
         Picture picture = pictureService.getById(id);
         ThrowUtils.throwIf(picture == null, ErrorCode.NOT_FOUND_ERROR);
-        // 权限校验
+        // 权限校验：公共图库所有人可看，私有空间仅本人可看
         User loginUser = userService.getLoginUser(request);
-        pictureService.checkPictureAuth(loginUser, picture);
+        Long spaceId = picture.getSpaceId();
+        if (spaceId != null) {
+            // 私有空间图片，校验权限
+            pictureService.checkPictureAuth(loginUser, picture);
+        }
         // 获取封装类
         PictureVO pictureVO = pictureService.getPictureVO(picture, request);
         return ResultUtils.success(pictureVO);
@@ -207,9 +216,11 @@ public class PictureController {
         long size = pictureQueryRequest.getPageSize();
         // 限制爬虫
         ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
-        // 普通用户默认只能看到审核通过的数据（0-待审核; 1-通过; 2-拒绝）
-        pictureQueryRequest.setReviewStatus(1);
-        pictureQueryRequest.setNullSpaceId(true);
+        // 公共图库模式（无 spaceId）：默认只展示审核通过的非空间图片
+        if (pictureQueryRequest.getSpaceId() == null) {
+            pictureQueryRequest.setReviewStatus(1);
+            pictureQueryRequest.setNullSpaceId(true);
+        }
         // 查询数据库
         Page<Picture> picturePage = pictureService.page(new Page<>(current, size),
                 pictureService.getQueryWrapper(pictureQueryRequest));
@@ -229,9 +240,11 @@ public class PictureController {
         long size = pictureQueryRequest.getPageSize();
         // 限制爬虫
         ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
-        // 普通用户默认只能查看已过审的数据
-        pictureQueryRequest.setReviewStatus(1);
-        pictureQueryRequest.setNullSpaceId(true);
+        // 公共图库模式（无 spaceId）：默认只展示审核通过的非空间图片
+        if (pictureQueryRequest.getSpaceId() == null) {
+            pictureQueryRequest.setReviewStatus(1);
+            pictureQueryRequest.setNullSpaceId(true);
+        }
 
         // 构建缓存 key
         String queryCondition = JSONUtil.toJsonStr(pictureQueryRequest);
@@ -292,5 +305,32 @@ public class PictureController {
         pictureTagCategory.setTagList(tagList);
         pictureTagCategory.setCategoryList(categoryList);
         return ResultUtils.success(pictureTagCategory);
+    }
+
+    /**
+     * 创建 AI 扩图任务
+     */
+    @PostMapping("/out_painting/create_task")
+    public BaseResponse<CreateOutPaintingTaskResponse> createPictureOutPaintingTask(
+            @RequestBody CreatePictureOutPaintingTaskRequest createPictureOutPaintingTaskRequest,
+            HttpServletRequest request) {
+        if (createPictureOutPaintingTaskRequest == null
+                || createPictureOutPaintingTaskRequest.getPictureId() == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        User loginUser = userService.getLoginUser(request);
+        CreateOutPaintingTaskResponse response =
+                pictureService.createPictureOutPaintingTask(createPictureOutPaintingTaskRequest, loginUser);
+        return ResultUtils.success(response);
+    }
+
+    /**
+     * 查询 AI 扩图任务状态
+     */
+    @GetMapping("/out_painting/get_task")
+    public BaseResponse<GetOutPaintingTaskResponse> getPictureOutPaintingTask(String taskId) {
+        ThrowUtils.throwIf(StrUtil.isBlank(taskId), ErrorCode.PARAMS_ERROR);
+        GetOutPaintingTaskResponse task = aliYunAiApi.getOutPaintingTask(taskId);
+        return ResultUtils.success(task);
     }
 }

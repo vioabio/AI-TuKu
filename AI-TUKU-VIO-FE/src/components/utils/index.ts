@@ -1,6 +1,38 @@
 import { saveAs } from 'file-saver'
 
 /**
+ * 获取图片 blob 对象和 base64
+ * @param url 图片 url
+ * @param cb 回调函数,返回 blob url 和 base64
+ */
+export const fetchImageAsBlob = async (
+  url?: string,
+  cb?: (blobUrl: string, base64: string) => void,
+) => {
+  if (!url) return
+  // 将 COS 图片地址前缀替换为当前页面地址（通过 Vite 代理解决跨域）
+  const formatUrl = url.replace('https://vio-1447107544.cos.ap-shanghai.myqcloud.com', window.location.origin)
+  try {
+    const response = await fetch(formatUrl)
+    if (!response.ok) {
+      throw new Error('图片加载失败')
+    }
+    const imageBlob = await response.blob()
+    const objectUrl = URL.createObjectURL(imageBlob)
+
+    // 转换为 base64
+    const reader = new FileReader()
+    reader.readAsDataURL(imageBlob)
+    reader.onloadend = () => {
+      const base64 = reader.result as string
+      cb?.(objectUrl, base64)
+    }
+  } catch (error: any) {
+    console.log('获取图片失败:', error)
+  }
+}
+
+/**
  * 格式化文件大小
  * @param size
  */

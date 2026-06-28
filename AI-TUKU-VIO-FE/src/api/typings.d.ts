@@ -5,9 +5,27 @@ declare namespace API {
     message?: string
   }
 
+  type BaseResponseCreateOutPaintingTaskResponse_ = {
+    code?: number
+    data?: CreateOutPaintingTaskResponse
+    message?: string
+  }
+
+  type BaseResponseGetOutPaintingTaskResponse_ = {
+    code?: number
+    data?: GetOutPaintingTaskResponse
+    message?: string
+  }
+
   type BaseResponseInt_ = {
     code?: number
     data?: number
+    message?: string
+  }
+
+  type BaseResponseListSpaceLevel_ = {
+    code?: number
+    data?: SpaceLevel[]
     message?: string
   }
 
@@ -35,6 +53,18 @@ declare namespace API {
     message?: string
   }
 
+  type BaseResponsePageSpace_ = {
+    code?: number
+    data?: PageSpace_
+    message?: string
+  }
+
+  type BaseResponsePageSpaceVO_ = {
+    code?: number
+    data?: PageSpaceVO_
+    message?: string
+  }
+
   type BaseResponsePageUserVO_ = {
     code?: number
     data?: PageUserVO_
@@ -59,6 +89,18 @@ declare namespace API {
     message?: string
   }
 
+  type BaseResponseSpace_ = {
+    code?: number
+    data?: Space
+    message?: string
+  }
+
+  type BaseResponseSpaceVO_ = {
+    code?: number
+    data?: SpaceVO
+    message?: string
+  }
+
   type BaseResponseString_ = {
     code?: number
     data?: string
@@ -77,8 +119,25 @@ declare namespace API {
     message?: string
   }
 
+  type CreateOutPaintingTaskResponse = {
+    code?: string
+    message?: string
+    output?: Output
+    requestId?: string
+  }
+
+  type CreatePictureOutPaintingTaskRequest = {
+    parameters?: Parameters
+    pictureId?: number
+  }
+
   type DeleteRequest = {
     id?: number
+  }
+
+  type GetOutPaintingTaskResponse = {
+    output?: Output1
+    requestId?: string
   }
 
   type getPictureByIdUsingGETParams = {
@@ -86,9 +145,24 @@ declare namespace API {
     id?: number
   }
 
+  type getPictureOutPaintingTaskUsingGETParams = {
+    /** taskId */
+    taskId?: string
+  }
+
   type getPictureVOByIdUsingGETParams = {
     /** id */
     id?: number
+  }
+
+  type getSpaceByIdUsingGETParams = {
+    /** id */
+    id?: string | number
+  }
+
+  type getSpaceVOByIdUsingGETParams = {
+    /** id */
+    id?: string | number
   }
 
   type getUserByIdUsingGETParams = {
@@ -113,6 +187,25 @@ declare namespace API {
     userRole?: string
   }
 
+  type Output = {
+    taskId?: string
+    taskStatus?: string
+  }
+
+  type Output1 = {
+    code?: string
+    endTime?: string
+    failed?: number
+    message?: string
+    outputImageUrl?: string
+    scheduledTime?: string
+    submitTime?: string
+    succeeded?: number
+    taskId?: string
+    taskStatus?: string
+    total?: number
+  }
+
   type PagePicture_ = {
     current?: number
     pages?: number
@@ -129,12 +222,34 @@ declare namespace API {
     total?: number
   }
 
+  type PageSpace_ = {
+    current?: number
+    pages?: number
+    records?: Space[]
+    size?: number
+    total?: number
+  }
+
+  type PageSpaceVO_ = {
+    current?: number
+    pages?: number
+    records?: SpaceVO[]
+    size?: number
+    total?: number
+  }
+
   type PageUserVO_ = {
     current?: number
     pages?: number
     records?: UserVO[]
     size?: number
     total?: number
+  }
+
+  type Parameters = {
+    add_watermark?: boolean
+    x_scale?: number
+    y_scale?: number
   }
 
   type Picture = {
@@ -222,6 +337,7 @@ declare namespace API {
     introduction?: string
     name?: string
     picName?: string
+    spaceId?: number
     tags?: string[]
   }
 
@@ -248,6 +364,72 @@ declare namespace API {
     userId?: number
   }
 
+  type Space = {
+    createTime?: string
+    editTime?: string
+    id?: number
+    isDelete?: number
+    maxCount?: number
+    maxSize?: number
+    spaceLevel?: number
+    spaceName?: string
+    totalCount?: number
+    totalSize?: number
+    updateTime?: string
+    userId?: number
+  }
+
+  type SpaceAddRequest = {
+    spaceLevel?: number
+    spaceName?: string
+  }
+
+  type SpaceEditRequest = {
+    id?: number
+    spaceName?: string
+  }
+
+  type SpaceLevel = {
+    maxCount?: number
+    maxSize?: number
+    text?: string
+    value?: number
+  }
+
+  type SpaceQueryRequest = {
+    current?: number
+    id?: number
+    pageSize?: number
+    sortField?: string
+    sortOrder?: string
+    spaceLevel?: number
+    spaceName?: string
+    userId?: number
+  }
+
+  type SpaceUpdateRequest = {
+    id?: number
+    maxCount?: number
+    maxSize?: number
+    spaceLevel?: number
+    spaceName?: string
+  }
+
+  type SpaceVO = {
+    createTime?: string
+    editTime?: string
+    id?: number
+    maxCount?: number
+    maxSize?: number
+    spaceLevel?: number
+    spaceName?: string
+    totalCount?: number
+    totalSize?: number
+    updateTime?: string
+    user?: UserVO
+    userId?: number
+  }
+
   type testDownloadFileUsingGETParams = {
     /** filepath */
     filepath?: string
@@ -260,6 +442,7 @@ declare namespace API {
     introduction?: string
     name?: string
     picName?: string
+    spaceId?: number
     tags?: string[]
   }
 
@@ -330,118 +513,5 @@ declare namespace API {
     vipCode?: string
     vipExpireTime?: string
     vipNumber?: number
-  }
-
-  // ========== 空间相关类型 ==========
-  type Space = {
-    createTime?: string
-    editTime?: string
-    id?: number
-    isDelete?: number
-    maxCount?: number
-    maxSize?: number
-    spaceLevel?: number
-    spaceName?: string
-    totalCount?: number
-    totalSize?: number
-    updateTime?: string
-    userId?: number
-  }
-
-  type SpaceVO = {
-    createTime?: string
-    editTime?: string
-    id?: number
-    maxCount?: number
-    maxSize?: number
-    spaceLevel?: number
-    spaceName?: string
-    totalCount?: number
-    totalSize?: number
-    updateTime?: string
-    user?: UserVO
-    userId?: number
-  }
-
-  type SpaceAddRequest = {
-    spaceName?: string
-    spaceLevel?: number
-  }
-
-  type SpaceEditRequest = {
-    id?: number
-    spaceName?: string
-  }
-
-  type SpaceUpdateRequest = {
-    id?: number
-    spaceName?: string
-    spaceLevel?: number
-    maxSize?: number
-    maxCount?: number
-  }
-
-  type SpaceQueryRequest = {
-    current?: number
-    id?: number
-    pageSize?: number
-    sortField?: string
-    sortOrder?: string
-    spaceLevel?: number
-    spaceName?: string
-    userId?: number
-  }
-
-  type SpaceLevel = {
-    maxCount?: number
-    maxSize?: number
-    text?: string
-    value?: number
-  }
-
-  type BaseResponseSpace_ = {
-    code?: number
-    data?: Space
-    message?: string
-  }
-
-  type BaseResponseSpaceVO_ = {
-    code?: number
-    data?: SpaceVO
-    message?: string
-  }
-
-  type BaseResponsePageSpace_ = {
-    code?: number
-    data?: PageSpace_
-    message?: string
-  }
-
-  type BaseResponsePageSpaceVO_ = {
-    code?: number
-    data?: PageSpaceVO_
-    message?: string
-  }
-
-  type BaseResponseListSpaceLevel_ = {
-    code?: number
-    data?: SpaceLevel[]
-    message?: string
-  }
-
-  type PageSpace_ = {
-    current?: number
-    pages?: number
-    records?: Space[]
-    size?: number
-    total?: number
-  }
-
-  type PageSpaceVO_ = {
-    current?: number
-    pages?: number
-    records?: SpaceVO[]
-    size?: number
-    total?: number
   }
 }

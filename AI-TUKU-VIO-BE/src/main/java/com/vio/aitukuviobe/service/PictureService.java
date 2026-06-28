@@ -3,6 +3,8 @@ package com.vio.aitukuviobe.service;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.vio.aitukuviobe.model.dto.picture.CreateOutPaintingTaskResponse;
+import com.vio.aitukuviobe.model.dto.picture.CreatePictureOutPaintingTaskRequest;
 import com.vio.aitukuviobe.model.dto.picture.PictureEditRequest;
 import com.vio.aitukuviobe.model.dto.picture.PictureQueryRequest;
 import com.vio.aitukuviobe.model.dto.picture.PictureReviewRequest;
@@ -94,4 +96,11 @@ public interface PictureService extends IService<Picture> {
      * 校验图片权限
      */
     void checkPictureAuth(User loginUser, Picture picture);
+
+    /**
+     * 创建 AI 扩图任务
+     */
+    CreateOutPaintingTaskResponse createPictureOutPaintingTask(
+            CreatePictureOutPaintingTaskRequest createPictureOutPaintingTaskRequest,
+            User loginUser);
 }
