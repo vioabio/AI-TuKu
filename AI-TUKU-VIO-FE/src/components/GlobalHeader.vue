@@ -93,6 +93,16 @@ const originItems = [
     title: '我的空间',
   },
   {
+    key: '/space_analyze?queryAll=true',
+    label: '全空间分析',
+    title: '全空间分析',
+  },
+  {
+    key: '/space_analyze?queryPublic=true',
+    label: '公共图库分析',
+    title: '公共图库分析',
+  },
+  {
     key:"others",
     label: h('a', { href: 'https://github.com/vioabio', target: '_blank' }, '作者'),
     title: '作者'
@@ -102,8 +112,9 @@ const originItems = [
 // 根据权限过滤菜单项
 const filterMenus = (menus = [] as MenuProps['items']) => {
   return menus?.filter((menu) => {
-    // 管理员才能看到 /admin 开头的菜单
-    if (menu?.key?.startsWith('/admin')) {
+    const key = menu?.key as string
+    // 管理员才能看到 /admin 开头的菜单 和 全空间/公共图库分析
+    if (key?.startsWith('/admin') || key?.startsWith('/space_analyze')) {
       const loginUser = loginUserStore.loginUser
       if (!loginUser || loginUser.userRole !== 'admin') {
         return false
@@ -118,11 +129,20 @@ const items = computed(() => filterMenus(originItems))
 
 const router=useRouter();
 
-// 绑定元素“key”隐式具有“any”类型。ts-plugin(7031)
+// 绑定元素”key”隐式具有”any”类型。ts-plugin(7031)
 const doMenuClick = ({ key }: { key: string }) => {
-  // 外链菜单项不触发路由跳转（如"作者"跳转 GitHub）
+  // 外链菜单项不触发路由跳转（如”作者”跳转 GitHub）
   if (key.startsWith('/')) {
-    router.push({ path: key })
+    // 支持 key 中携带 query 参数（如 /space_analyze?queryAll=true）
+    const [path, queryStr] = key.split('?')
+    const query: Record<string, string> = {}
+    if (queryStr) {
+      queryStr.split('&').forEach(pair => {
+        const [k, v] = pair.split('=')
+        query[k] = v
+      })
+    }
+    router.push({ path, query: Object.keys(query).length > 0 ? query : undefined })
   }
 }
 

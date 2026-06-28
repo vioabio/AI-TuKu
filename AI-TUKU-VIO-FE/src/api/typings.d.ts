@@ -514,4 +514,94 @@ declare namespace API {
     vipExpireTime?: string
     vipNumber?: number
   }
+
+  // ========== 图库分析相关类型 ==========
+  type SpaceAnalyzeRequest = {
+    spaceId?: string
+    queryAll?: boolean
+    queryPublic?: boolean
+  }
+
+  type SpaceUsageAnalyzeRequest = SpaceAnalyzeRequest
+
+  type SpaceCategoryAnalyzeRequest = SpaceAnalyzeRequest
+
+  type SpaceTagAnalyzeRequest = SpaceAnalyzeRequest
+
+  type SpaceSizeAnalyzeRequest = SpaceAnalyzeRequest
+
+  type SpaceUserAnalyzeRequest = SpaceAnalyzeRequest & {
+    userId?: string
+    timeDimension?: string
+  }
+
+  type SpaceRankAnalyzeRequest = {
+    topN?: number
+  }
+
+  type SpaceUsageAnalyzeResponse = {
+    usedSize?: number
+    maxSize?: number
+    sizeUsageRatio?: number
+    usedCount?: number
+    maxCount?: number
+    countUsageRatio?: number
+  }
+
+  type SpaceCategoryAnalyzeResponse = {
+    category?: string
+    count?: number
+    totalSize?: number
+  }
+
+  type SpaceTagAnalyzeResponse = {
+    tag?: string
+    count?: number
+  }
+
+  type SpaceSizeAnalyzeResponse = {
+    sizeRange?: string
+    count?: number
+  }
+
+  type SpaceUserAnalyzeResponse = {
+    period?: string
+    count?: number
+  }
+
+  type BaseResponseSpaceUsageAnalyzeResponse_ = {
+    code?: number
+    data?: SpaceUsageAnalyzeResponse
+    message?: string
+  }
+
+  type BaseResponseListSpaceCategoryAnalyzeResponse_ = {
+    code?: number
+    data?: SpaceCategoryAnalyzeResponse[]
+    message?: string
+  }
+
+  type BaseResponseListSpaceTagAnalyzeResponse_ = {
+    code?: number
+    data?: SpaceTagAnalyzeResponse[]
+    message?: string
+  }
+
+  type BaseResponseListSpaceSizeAnalyzeResponse_ = {
+    code?: number
+    data?: SpaceSizeAnalyzeResponse[]
+    message?: string
+  }
+
+  type BaseResponseListSpaceUserAnalyzeResponse_ = {
+    code?: number
+    data?: SpaceUserAnalyzeResponse[]
+    message?: string
+  }
+
+  type BaseResponseListSpace_ = {
+    code?: number
+    data?: Space[]
+    message?: string
+  }
 }

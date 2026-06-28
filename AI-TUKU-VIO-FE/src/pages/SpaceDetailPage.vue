@@ -7,6 +7,7 @@
         <a-button type="primary" :href="`/add_picture?spaceId=${id}`" target="_blank">
           + 创建图片
         </a-button>
+        <a-button @click="doSpaceAnalyze">空间分析</a-button>
         <a-tooltip
           :title="`占用空间 ${formatSize(space.totalSize ?? 0)} / ${formatSize(space.maxSize ?? 0)}`"
         >
@@ -35,12 +36,16 @@
 
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import { getSpaceVoByIdUsingGet } from '@/api/spaceController.ts'
 import { listPictureVoByPageUsingPost } from '@/api/pictureController.ts'
 import PictureList from '@/components/PictureList.vue'
 
+const router = useRouter()
 const props = defineProps<{ id: string | number }>()
+// 模板中使用的 id
+const id = props.id
 
 const space = ref<API.SpaceVO>({})
 const dataList = ref<API.PictureVO[]>([])
@@ -82,6 +87,10 @@ const fetchData = async () => {
     message.error('获取数据失败，' + (error?.message || '网络异常'))
   }
   loading.value = false
+}
+
+const doSpaceAnalyze = () => {
+  router.push({ path: '/space_analyze', query: { spaceId: id as string } })
 }
 
 const onPageChange = (page: number, pageSize: number) => {
