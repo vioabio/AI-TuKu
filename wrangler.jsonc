@@ -1,0 +1,14 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "ai-tuku",
+  "compatibility_date": "2026-06-28",
+  "observability": {
+    "enabled": true
+  },
+  "assets": {
+    "directory": "AI-TUKU-VIO-FE"
+  },
+  "compatibility_flags": [
+    "nodejs_compat"
+  ]
+}
