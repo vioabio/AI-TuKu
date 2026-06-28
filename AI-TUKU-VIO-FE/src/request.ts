@@ -3,8 +3,7 @@ import { message } from 'ant-design-vue';
 import axios from 'axios';
 
 const myAxios = axios.create({
-  baseURL: 'http://localhost:8123',
-//   baseURL:" ",
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8123',
   timeout: 60000,
   withCredentials: true,
 });

@@ -10,7 +10,8 @@ export class PictureEditWebSocket {
   }
 
   connect() {
-    const url = `ws://localhost:8123/api/ws/picture/edit?pictureId=${this.pictureId}`
+    const wsBaseUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:8123'
+    const url = `${wsBaseUrl}/api/ws/picture/edit?pictureId=${this.pictureId}`
     this.ws = new WebSocket(url)
 
     this.ws.onopen = () => {
