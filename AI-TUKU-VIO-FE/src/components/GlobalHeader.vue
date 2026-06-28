@@ -52,7 +52,7 @@ import { message, type MenuProps } from 'ant-design-vue';
 import { useRouter } from 'vue-router';
 import { useLoginUserStore } from '@/stores/useLoginUserStore';
 import { userLogoutUsingPost } from '@/api/userController.ts';
-import { listMyTeamSpaceUsingPost } from '@/api/spaceController.ts';
+import { listMyTeamSpaceUsingPost } from '@/api/spaceUserController.ts';
 
 const loginUserStore = useLoginUserStore()
 

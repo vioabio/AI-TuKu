@@ -27,6 +27,7 @@
         :imageUrl="picture?.url"
         :picture="picture"
         :spaceId="spaceId"
+        :space="space"
         :onSuccess="onCropSuccess"
       />
       <ImageOutPainting
@@ -84,7 +85,7 @@ import PictureUpload from '@/components/PictureUpload.vue'
 import UrlPictureUpload from '@/components/UrlPictureUpload.vue'
 import ImageCropper from '@/components/ImageCropper.vue'
 import ImageOutPainting from '@/components/ImageOutPainting.vue'
-import { h, onMounted, reactive, ref } from 'vue'
+import { h, onMounted, reactive, ref, watchEffect } from 'vue'
 import { message } from 'ant-design-vue'
 import { EditOutlined, FullscreenOutlined } from '@ant-design/icons-vue'
 import {
@@ -92,6 +93,7 @@ import {
   getPictureVoByIdUsingGet,
   listPictureTagCategoryUsingGet,
 } from '@/api/pictureController.ts'
+import { getSpaceVoByIdUsingGet } from '@/api/spaceController.ts'
 import { useRoute, useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -103,6 +105,20 @@ const uploadType = ref<'file' | 'url'>('file')
 
 // 获取空间 id（从 URL 查询参数，保留字符串避免 Snowflake ID 精度丢失）
 const spaceId = route.query?.spaceId as string | undefined
+
+// 空间信息（用于协同编辑判断）
+const space = ref<API.SpaceVO>()
+
+const fetchSpace = async () => {
+  if (spaceId) {
+    const res = await getSpaceVoByIdUsingGet({ id: spaceId })
+    if (res.data.code === 0 && res.data.data) {
+      space.value = res.data.data
+    }
+  }
+}
+
+watchEffect(() => { fetchSpace() })
 
 // 图片编辑弹窗引用
 const imageCropperRef = ref()
