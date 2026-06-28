@@ -6,7 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 
 @SpringBootApplication
-@MapperScan("com.vio.aitukuviobe.mapper")
+@MapperScan("com.vio.aitukuviobe.infrastructure.mapper")
 //代理暴露，代理类
 @EnableAspectJAutoProxy(exposeProxy = true)
 public class

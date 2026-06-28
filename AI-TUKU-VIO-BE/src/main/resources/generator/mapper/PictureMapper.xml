@@ -2,9 +2,9 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.vio.aitukuviobe.mapper.PictureMapper">
+<mapper namespace="com.vio.aitukuviobe.infrastructure.mapper.PictureMapper">
 
-    <resultMap id="BaseResultMap" type="com.vio.aitukuviobe.model.entity.Picture">
+    <resultMap id="BaseResultMap" type="com.vio.aitukuviobe.domain.picture.entity.Picture">
             <id property="id" column="id" />
             <result property="url" column="url" />
             <result property="name" column="name" />

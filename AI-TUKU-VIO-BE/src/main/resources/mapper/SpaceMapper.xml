@@ -2,8 +2,8 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.vio.aitukuviobe.mapper.SpaceMapper">
-    <resultMap id="BaseResultMap" type="com.vio.aitukuviobe.model.entity.Space">
+<mapper namespace="com.vio.aitukuviobe.infrastructure.mapper.SpaceMapper">
+    <resultMap id="BaseResultMap" type="com.vio.aitukuviobe.domain.space.entity.Space">
         <id property="id" column="id" jdbcType="BIGINT"/>
         <result property="spaceName" column="spaceName" jdbcType="VARCHAR"/>
         <result property="spaceLevel" column="spaceLevel" jdbcType="INTEGER"/>
