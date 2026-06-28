@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.vio.aitukuviobe.constant.UserConstant;
 import com.vio.aitukuviobe.exception.BusinessException;
 import com.vio.aitukuviobe.exception.ErrorCode;
+import com.vio.aitukuviobe.manager.StpKit;
 import com.vio.aitukuviobe.model.dto.user.UserQueryRequest;
 import com.vio.aitukuviobe.model.entity.User;
 import com.vio.aitukuviobe.model.enums.UserRoleEnum;
@@ -100,9 +101,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         }
         // 4. 保存用户的登录态
         request.getSession().setAttribute(UserConstant.USER_LOGIN_STATE, user);
-        // 记录用户登录态到 Sa-token，便于空间鉴权时使用，注意保证该用户信息与 SpringSession 中的信息过期时间一致
-//        StpKit.SPACE.login(user.getId());
-//        StpKit.SPACE.getSession().set(UserConstant.USER_LOGIN_STATE, user);
+        // 记录用户登录态到 Sa-token，便于空间鉴权时使用
+        try {
+            try { StpKit.SPACE.logout(); } catch (Exception ignored) {}
+            StpKit.SPACE.login(user.getId());
+            StpKit.SPACE.getSession().set(UserConstant.USER_LOGIN_STATE, user);
+        } catch (Exception e) {
+            log.warn("Sa-Token 空间登录态保存失败（不影响正常登录）: {}", e.getMessage());
+        }
         return this.getLoginUserVO(user);
     }
 
@@ -195,6 +201,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         }
         // 移除登录态
         request.getSession().removeAttribute(UserConstant.USER_LOGIN_STATE);
+        // 退出 Sa-Token 空间会话（忽略异常，不影响正常登出）
+        try { StpKit.SPACE.logout(); } catch (Exception ignored) {}
         return true;
     }
 

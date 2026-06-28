@@ -5,7 +5,9 @@ import lombok.Data;
 import org.springframework.beans.BeanUtils;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  * 空间视图对象
@@ -20,10 +22,13 @@ public class SpaceVO implements Serializable {
     private Long totalSize;
     private Long totalCount;
     private Long userId;
+    private Integer spaceType;
     private Date createTime;
     private Date editTime;
     private Date updateTime;
     private UserVO user;
+    /** 当前用户对该空间的权限列表 */
+    private List<String> permissionList = new ArrayList<>();
     private static final long serialVersionUID = 1L;
 
     /**

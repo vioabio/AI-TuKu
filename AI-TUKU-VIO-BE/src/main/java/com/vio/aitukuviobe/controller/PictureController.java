@@ -7,7 +7,10 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.vio.aitukuviobe.annotation.AuthCheck;
+import com.vio.aitukuviobe.annotation.SaSpaceCheckPermission;
 import com.vio.aitukuviobe.common.BaseResponse;
+import com.vio.aitukuviobe.constant.SpaceUserPermissionConstant;
+import com.vio.aitukuviobe.manager.StpKit;
 import com.vio.aitukuviobe.common.DeleteRequest;
 import com.vio.aitukuviobe.common.ResultUtils;
 import com.vio.aitukuviobe.constant.UserConstant;
@@ -67,6 +70,7 @@ public class PictureController {
      * 上传图片（可重新上传）
      */
     @PostMapping("/upload")
+    @SaSpaceCheckPermission(value = SpaceUserPermissionConstant.PICTURE_UPLOAD)
     public BaseResponse<PictureVO> uploadPicture(
             @RequestPart("file") MultipartFile multipartFile,
             PictureUploadRequest pictureUploadRequest,
@@ -80,6 +84,7 @@ public class PictureController {
      * 通过 URL 上传图片（可重新上传）
      */
     @PostMapping("/upload/url")
+    @SaSpaceCheckPermission(value = SpaceUserPermissionConstant.PICTURE_UPLOAD)
     public BaseResponse<PictureVO> uploadPictureByUrl(
             @RequestBody PictureUploadRequest pictureUploadRequest,
             HttpServletRequest request) {
@@ -117,7 +122,7 @@ public class PictureController {
     }
 
     @PostMapping("/delete")
-    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    @SaSpaceCheckPermission(value = SpaceUserPermissionConstant.PICTURE_DELETE)
     public BaseResponse<Boolean> deletePicture(@RequestBody DeleteRequest deleteRequest
             , HttpServletRequest request) {
         if (deleteRequest == null || deleteRequest.getId() <= 0) {
@@ -180,12 +185,13 @@ public class PictureController {
         // 查询数据库
         Picture picture = pictureService.getById(id);
         ThrowUtils.throwIf(picture == null, ErrorCode.NOT_FOUND_ERROR);
-        // 权限校验：公共图库所有人可看，私有空间仅本人可看
+        // 权限校验：公共图库所有人可看，私有/团队空间校验 PICTURE_VIEW 权限
         User loginUser = userService.getLoginUser(request);
         Long spaceId = picture.getSpaceId();
         if (spaceId != null) {
-            // 私有空间图片，校验权限
-            pictureService.checkPictureAuth(loginUser, picture);
+            boolean hasPermission = StpKit.SPACE.hasPermission(
+                    SpaceUserPermissionConstant.PICTURE_VIEW);
+            ThrowUtils.throwIf(!hasPermission, ErrorCode.NO_AUTH_ERROR);
         }
         // 获取封装类
         PictureVO pictureVO = pictureService.getPictureVO(picture, request);
@@ -288,6 +294,7 @@ public class PictureController {
      * 编辑图片（给用户使用）
      */
     @PostMapping("/edit")
+    @SaSpaceCheckPermission(value = SpaceUserPermissionConstant.PICTURE_EDIT)
     public BaseResponse<Boolean> editPicture(@RequestBody PictureEditRequest pictureEditRequest, HttpServletRequest request) {
         if (pictureEditRequest == null || pictureEditRequest.getId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);

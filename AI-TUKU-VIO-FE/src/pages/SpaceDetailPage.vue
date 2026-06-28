@@ -2,10 +2,13 @@
   <div id="spaceDetailPage">
     <!-- 空间信息 -->
     <a-flex justify="space-between">
-      <h2>{{ space.spaceName }}（私有空间）</h2>
+      <h2>{{ space.spaceName }}（{{ space.spaceType === 1 ? '团队空间' : '私有空间' }}）</h2>
       <a-space size="middle">
-        <a-button type="primary" :href="`/add_picture?spaceId=${id}`" target="_blank">
+        <a-button v-if="canUploadPicture" type="primary" :href="`/add_picture?spaceId=${id}`" target="_blank">
           + 创建图片
+        </a-button>
+        <a-button v-if="canManageSpaceUser" type="primary" ghost @click="doManageSpaceUser">
+          成员管理
         </a-button>
         <a-button @click="doSpaceAnalyze">空间分析</a-button>
         <a-tooltip
@@ -21,7 +24,7 @@
     </a-flex>
     <div style="margin-bottom: 16px" />
     <!-- 图片列表 -->
-    <PictureList :dataList="dataList" :loading="loading" showOp :canEdit="true" :canDelete="true" :onReload="fetchData" />
+    <PictureList :dataList="dataList" :loading="loading" showOp :canEdit="canEditPicture" :canDelete="canDeletePicture" :onReload="fetchData" />
     <!-- 分页 -->
     <a-pagination
       style="text-align: right"
@@ -35,12 +38,13 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import { getSpaceVoByIdUsingGet } from '@/api/spaceController.ts'
 import { listPictureVoByPageUsingPost } from '@/api/pictureController.ts'
 import PictureList from '@/components/PictureList.vue'
+import { SPACE_PERMISSION_ENUM } from '@/constants/space'
 
 const router = useRouter()
 const props = defineProps<{ id: string | number }>()
@@ -92,6 +96,17 @@ const fetchData = async () => {
 const doSpaceAnalyze = () => {
   router.push({ path: '/space_analyze', query: { spaceId: id as string } })
 }
+
+const doManageSpaceUser = () => {
+  router.push(`/spaceUserManage/${id}`)
+}
+
+// 权限检查
+const permissionList = computed(() => space.value.permissionList ?? [])
+const canUploadPicture = computed(() => permissionList.value.includes(SPACE_PERMISSION_ENUM.PICTURE_UPLOAD))
+const canManageSpaceUser = computed(() => permissionList.value.includes(SPACE_PERMISSION_ENUM.SPACE_USER_MANAGE))
+const canEditPicture = computed(() => permissionList.value.includes(SPACE_PERMISSION_ENUM.PICTURE_EDIT))
+const canDeletePicture = computed(() => permissionList.value.includes(SPACE_PERMISSION_ENUM.PICTURE_DELETE))
 
 const onPageChange = (page: number, pageSize: number) => {
   searchParams.current = page

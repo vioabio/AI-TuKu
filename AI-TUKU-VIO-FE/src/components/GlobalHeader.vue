@@ -46,12 +46,13 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { computed, h, ref } from 'vue';
+import { computed, h, ref, watchEffect } from 'vue';
 import { HomeOutlined,LogoutOutlined} from '@ant-design/icons-vue';
 import { message, type MenuProps } from 'ant-design-vue';
 import { useRouter } from 'vue-router';
 import { useLoginUserStore } from '@/stores/useLoginUserStore';
 import { userLogoutUsingPost } from '@/api/userController.ts';
+import { listMyTeamSpaceUsingPost } from '@/api/spaceController.ts';
 
 const loginUserStore = useLoginUserStore()
 
@@ -124,8 +125,38 @@ const filterMenus = (menus = [] as MenuProps['items']) => {
   })
 }
 
-// 展示在菜单的路由数组
-const items = computed(() => filterMenus(originItems))
+// 我的团队空间列表
+const teamSpaceList = ref<API.SpaceUserVO[]>([])
+
+const fetchTeamSpaceList = async () => {
+  const res = await listMyTeamSpaceUsingPost()
+  if (res.data.code === 0 && res.data.data) {
+    teamSpaceList.value = res.data.data
+  }
+}
+
+watchEffect(() => {
+  if (loginUserStore.loginUser?.id) fetchTeamSpaceList()
+})
+
+// 展示在菜单的路由数组（动态追加团队空间）
+const items = computed(() => {
+  const filtered = filterMenus(originItems) ?? []
+  if (teamSpaceList.value.length > 0) {
+    const teamSubMenus = teamSpaceList.value.map((su) => ({
+      key: '/space/' + su.spaceId,
+      label: su.space?.spaceName ?? '未知空间',
+    }))
+    const teamGroup = {
+      type: 'group' as const,
+      label: '我的团队',
+      key: 'teamSpace',
+      children: teamSubMenus,
+    }
+    return [...filtered, teamGroup]
+  }
+  return filtered
+})
 
 const router=useRouter();
 

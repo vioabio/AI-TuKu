@@ -37,6 +37,11 @@
         <template v-if="column.dataIndex === 'spaceLevel'">
           <a-tag>{{ SPACE_LEVEL_MAP[record.spaceLevel] }}</a-tag>
         </template>
+        <template v-if="column.dataIndex === 'spaceType'">
+          <a-tag :color="record.spaceType === 1 ? 'purple' : 'blue'">
+            {{ SPACE_TYPE_MAP[record.spaceType] ?? '私有空间' }}
+          </a-tag>
+        </template>
         <template v-if="column.dataIndex === 'spaceUseInfo'">
           <div>大小：{{ formatSize(record.totalSize) }} / {{ formatSize(record.maxSize) }}</div>
           <div>数量：{{ record.totalCount }} / {{ record.maxCount }}</div>
@@ -63,12 +68,13 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { deleteSpaceUsingPost, listSpaceByPageUsingPost } from '@/api/spaceController.ts'
 import { message } from 'ant-design-vue'
 import dayjs from 'dayjs'
-import { SPACE_LEVEL_MAP, SPACE_LEVEL_OPTIONS } from '@/constants/space'
+import { SPACE_LEVEL_MAP, SPACE_LEVEL_OPTIONS, SPACE_TYPE_MAP } from '@/constants/space'
 
 const columns = [
   { title: 'id', dataIndex: 'id', width: 80 },
   { title: '空间名称', dataIndex: 'spaceName' },
   { title: '空间级别', dataIndex: 'spaceLevel' },
+  { title: '空间类别', dataIndex: 'spaceType' },
   { title: '使用情况', dataIndex: 'spaceUseInfo' },
   { title: '用户 id', dataIndex: 'userId', width: 80 },
   { title: '创建时间', dataIndex: 'createTime' },

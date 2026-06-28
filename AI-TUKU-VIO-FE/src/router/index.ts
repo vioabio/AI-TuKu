@@ -49,6 +49,12 @@ const router = createRouter({
       component: ()=>import('../pages/SpaceAnalyzePage.vue'),
     },
     {
+      path: '/spaceUserManage/:id',
+      name: '空间成员管理',
+      component: ()=>import('../pages/SpaceUserManagePage.vue'),
+      props: true,
+    },
+    {
       path: '/add_space',
       name: '创建空间',
       component: ()=>import('../pages/AddSpacePage.vue')

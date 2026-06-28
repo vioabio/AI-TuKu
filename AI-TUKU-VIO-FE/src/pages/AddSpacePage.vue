@@ -23,6 +23,9 @@
           style="min-width: 180px"
         />
       </a-form-item>
+      <a-form-item v-if="!isEdit" name="spaceType" label="空间类型">
+        <a-radio-group v-model:value="formData.spaceType" :options="SPACE_TYPE_OPTIONS" />
+      </a-form-item>
       <a-form-item>
         <a-button type="primary" html-type="submit" style="width: 100%" :loading="loading">提交</a-button>
       </a-form-item>
@@ -35,7 +38,7 @@ import { onMounted, reactive, ref } from 'vue'
 import { message } from 'ant-design-vue'
 import { addSpaceUsingPost, getSpaceVoByIdUsingGet, updateSpaceUsingPost } from '@/api/spaceController.ts'
 import { listSpaceLevelUsingGet } from '@/api/spaceController.ts'
-import { SPACE_LEVEL_ENUM, SPACE_LEVEL_OPTIONS } from '@/constants/space'
+import { SPACE_LEVEL_ENUM, SPACE_LEVEL_OPTIONS, SPACE_TYPE_ENUM, SPACE_TYPE_OPTIONS } from '@/constants/space'
 import { useRoute, useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -48,6 +51,7 @@ const spaceLevelList = ref<API.SpaceLevel[]>([])
 const formData = reactive<API.SpaceAddRequest>({
   spaceName: '',
   spaceLevel: SPACE_LEVEL_ENUM.COMMON,
+  spaceType: SPACE_TYPE_ENUM.PRIVATE,
 })
 
 const handleSubmit = async () => {

@@ -7,30 +7,24 @@ import java.io.Serializable;
 import java.util.Date;
 
 /**
- * 空间
- * @TableName space
+ * 空间成员
+ * @TableName space_user
  */
-@TableName(value = "space")
+@TableName(value = "space_user")
 @Data
-public class Space implements Serializable {
+public class SpaceUser implements Serializable {
     @TableId(type = IdType.ASSIGN_ID)
     private Long id;
 
-    private String spaceName;
-    private Integer spaceLevel;
-    private Long maxSize;
-    private Long maxCount;
-    private Long totalSize;
-    private Long totalCount;
+    private Long spaceId;
     private Long userId;
 
     /**
-     * 空间类型：0-私有 1-团队
+     * 空间角色：viewer/editor/admin
      */
-    private Integer spaceType;
+    private String spaceRole;
 
     private Date createTime;
-    private Date editTime;
     private Date updateTime;
 
     @TableLogic

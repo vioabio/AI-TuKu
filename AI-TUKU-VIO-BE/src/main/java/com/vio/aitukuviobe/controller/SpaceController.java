@@ -9,6 +9,7 @@ import com.vio.aitukuviobe.constant.UserConstant;
 import com.vio.aitukuviobe.exception.BusinessException;
 import com.vio.aitukuviobe.exception.ErrorCode;
 import com.vio.aitukuviobe.exception.ThrowUtils;
+import com.vio.aitukuviobe.manager.SpaceUserAuthManager;
 import com.vio.aitukuviobe.model.dto.space.*;
 import com.vio.aitukuviobe.model.entity.Space;
 import com.vio.aitukuviobe.model.entity.User;
@@ -34,6 +35,9 @@ public class SpaceController {
 
     @Resource
     private SpaceService spaceService;
+
+    @Resource
+    private SpaceUserAuthManager spaceUserAuthManager;
 
     /**
      * 创建空间
@@ -137,7 +141,12 @@ public class SpaceController {
         ThrowUtils.throwIf(id <= 0, ErrorCode.PARAMS_ERROR);
         Space space = spaceService.getById(id);
         ThrowUtils.throwIf(space == null, ErrorCode.NOT_FOUND_ERROR);
-        return ResultUtils.success(spaceService.getSpaceVO(space, request));
+        SpaceVO spaceVO = spaceService.getSpaceVO(space, request);
+        // 填充当前用户的权限列表
+        User loginUser = userService.getLoginUser(request);
+        List<String> permissionList = spaceUserAuthManager.getPermissionList(space, loginUser);
+        spaceVO.setPermissionList(permissionList);
+        return ResultUtils.success(spaceVO);
     }
 
     /**
