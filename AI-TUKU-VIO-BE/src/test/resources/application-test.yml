@@ -1,0 +1,37 @@
+# 测试环境配置
+spring:
+  datasource:
+    # Testcontainers JDBC URL — 自动启动 MySQL 8.0 容器
+    url: jdbc:tc:mysql:8.0.33:///aituku_test?TC_REUSABLE=true
+    username: test
+    password: test
+    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+  redis:
+    host: localhost
+    port: 6379
+    timeout: 3000
+
+# 关闭外部服务
+cos:
+  client:
+    host: disabled
+    secretId: disabled
+    secretKey: disabled
+    region: disabled
+    bucket: disabled
+
+aliYunAi:
+  apiKey: disabled
+
+# 关闭 Sa-Token 日志
+sa-token:
+  is-print: false
+
+logging:
+  level:
+    root: WARN
+    com.vio.aitukuviobe: DEBUG
+
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.nologging.NoLoggingImpl
