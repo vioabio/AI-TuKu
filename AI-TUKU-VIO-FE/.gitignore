@@ -28,3 +28,17 @@ coverage
 *.sw?
 
 *.tsbuildinfo
+
+# === 敏感配置文件 ===
+.env
+.env.*
+!.env.example
+!.env.template
+*-local.yml
+*-local.yaml
+
+# === 密钥文件 ===
+*.pem
+*.key
+secrets/
+credentials/

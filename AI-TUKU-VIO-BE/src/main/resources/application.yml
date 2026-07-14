@@ -11,7 +11,7 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/vio_tuku
     username: root
-    password: '@087174Ab'
+    password: your-db-password  # 真实密码在 application-local.yml 中（已 gitignore）
   servlet:
     multipart:
       max-file-size: 20MB

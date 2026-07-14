@@ -48,9 +48,43 @@ dist
 dist-ssr
 coverage
 *.local
-*-local.yml
 
 /cypress/videos/
 /cypress/screenshots/
 
 *.tsbuildinfo
+
+# === 敏感配置文件 (API Keys, 密钥等) ===
+# 本地环境配置（包含真实密钥）
+*-local.yml
+*-local.yaml
+*-local.properties
+
+# 环境变量文件
+.env
+.env.*
+!.env.example
+!.env.template
+
+# 密钥文件
+*.pem
+*.key
+*.keystore
+*.jks
+*.p12
+secrets/
+credentials/
+
+# === 后端 (BE) ===
+# Maven 构建输出
+target/
+
+# === 其他 ===
+# 临时文件
+*.tmp
+*.bak
+*.swp
+*~
+.ftp/
+.cursor/
+*.code-workspace
