@@ -3,6 +3,7 @@ package com.vio.aitukuviobe.interfaces.controller;
 import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.vio.aitukuviobe.infrastructure.annotation.AuthCheck;
+import com.vio.aitukuviobe.infrastructure.annotation.RateLimit;
 import com.vio.aitukuviobe.infrastructure.common.BaseResponse;
 import com.vio.aitukuviobe.infrastructure.common.DeleteRequest;
 import com.vio.aitukuviobe.infrastructure.common.ResultUtils;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping("/user")
@@ -30,9 +32,11 @@ public class UserController {
     private UserApplicationService userApplicationService;
 
     /**
-     * 用户注册
+     * 用户注册（限流：3次/分钟）
      */
     @PostMapping("/register")
+    @RateLimit(rate = 3, interval = 1, timeUnit = TimeUnit.MINUTES,
+               message = "注册请求过于频繁，请稍后再试")
     public BaseResponse<Long> userRegister(@RequestBody UserRegisterRequest userRegisterRequest) {
         ThrowUtils.throwIf(userRegisterRequest == null, ErrorCode.PARAMS_ERROR);
         String userAccount = userRegisterRequest.getUserAccount();
@@ -43,9 +47,11 @@ public class UserController {
     }
 
     /**
-     * 用户登录
+     * 用户登录（限流：3次/分钟）
      */
     @PostMapping("/login")
+    @RateLimit(rate = 3, interval = 1, timeUnit = TimeUnit.MINUTES,
+               message = "登录请求过于频繁，请3分钟后再试")
     public BaseResponse<LoginUserVO> userLogin(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request) {
         ThrowUtils.throwIf(userLoginRequest == null, ErrorCode.PARAMS_ERROR);
         String userAccount = userLoginRequest.getUserAccount();

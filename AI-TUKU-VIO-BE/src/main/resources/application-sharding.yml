@@ -1,0 +1,59 @@
+# ============================================================
+# ShardingSphere 分库分表 + 读写分离 配置
+# ============================================================
+# 激活方式：在 application.yml 中设置 spring.profiles.include: sharding
+# 或在启动参数中添加 --spring.profiles.active=sharding
+#
+# 前置条件：
+#   1. MySQL 主从复制已配置（Master → Slave0, Slave1）
+#   2. 分表已手动创建（picture_0 ~ picture_4）或通过 Flyway 自动创建
+#   3. 防火墙/安全组已放行对应端口
+# ============================================================
+
+spring:
+  # 启用 ShardingSphere（触发 ShardingSphereConfiguration）
+  sharding:
+    enabled: true
+    # ---- 写库（Master） ----
+    write-ds:
+      jdbc-url: jdbc:mysql://localhost:3306/vio_tuku?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf-8
+      username: root
+      password: your-master-password
+    # ---- 读库 0（Slave 0） ----
+    read-ds-0:
+      jdbc-url: jdbc:mysql://localhost:3307/vio_tuku?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf-8
+      username: root
+      password: your-slave-password
+    # ---- 读库 1（Slave 1） ----
+    read-ds-1:
+      jdbc-url: jdbc:mysql://localhost:3308/vio_tuku?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf-8
+      username: root
+      password: your-slave-password
+
+  # 排除默认数据源自动配置（由 ShardingSphere 接管）
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+      - com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration
+
+# ============================================================
+# 分片规则说明
+# ============================================================
+# Picture 表按 spaceId 分 5 片：
+#   picture_0  → 公共图库图片（spaceId IS NULL）
+#   picture_1  → spaceId % 4 == 0
+#   picture_2  → spaceId % 4 == 1
+#   picture_3  → spaceId % 4 == 2
+#   picture_4  → spaceId % 4 == 3
+#
+# 建表 SQL（每个分片表结构一致）：
+#   CREATE TABLE picture_0 LIKE picture;
+#   CREATE TABLE picture_1 LIKE picture;
+#   CREATE TABLE picture_2 LIKE picture;
+#   CREATE TABLE picture_3 LIKE picture;
+#   CREATE TABLE picture_4 LIKE picture;
+#
+# 读写分离规则：
+#   写操作 → write_ds（Master）
+#   读操作 → read_ds_0 或 read_ds_1（轮询负载均衡）
+# ============================================================

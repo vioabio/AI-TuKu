@@ -10,6 +10,7 @@ import com.vio.aitukuviobe.interfaces.dto.picture.*;
 import com.vio.aitukuviobe.interfaces.vo.PictureVO;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 /**
  * 图片应用服务接口
@@ -40,4 +41,10 @@ public interface PictureApplicationService extends IService<Picture> {
 
     CreateOutPaintingTaskResponse createPictureOutPaintingTask(
             CreatePictureOutPaintingTaskRequest createPictureOutPaintingTaskRequest, User loginUser);
+
+    /**
+     * ES 全文搜索图片（ES 优先，不可用时降级 MySQL LIKE）
+     */
+    Page<Picture> searchPictures(String searchText, String category, List<String> tags,
+                                  Long spaceId, long current, long size);
 }

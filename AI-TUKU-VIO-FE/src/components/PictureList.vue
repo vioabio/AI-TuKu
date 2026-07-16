@@ -11,11 +11,12 @@
           <!-- 单张图片 -->
           <a-card hoverable @click="doClickPicture(picture)">
             <template #cover>
-              <a-image
-                :alt="picture.name"
+              <LazyImage
+                :alt="picture.name ?? '图片'"
                 :src="picture.thumbnailUrl ?? picture.url"
-                :preview="{ src: picture.url }"
-                style="height: 180px; object-fit: cover"
+                :width="360"
+                :height="180"
+                fit="cover"
               />
             </template>
             <a-card-meta :title="picture.name">
@@ -49,6 +50,7 @@ import {
 } from '@ant-design/icons-vue'
 import { deletePictureUsingPost } from '@/api/pictureController.ts'
 import { message } from 'ant-design-vue'
+import LazyImage from '@/components/LazyImage.vue'
 
 interface Props {
   dataList?: API.PictureVO[]

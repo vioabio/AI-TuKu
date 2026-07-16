@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.vio.aitukuviobe.infrastructure.annotation.AuthCheck;
+import com.vio.aitukuviobe.infrastructure.annotation.RateLimit;
 import com.vio.aitukuviobe.shared.auth.annotation.SaSpaceCheckPermission;
 import com.vio.aitukuviobe.infrastructure.common.BaseResponse;
 import com.vio.aitukuviobe.shared.auth.model.SpaceUserPermissionConstant;
@@ -70,9 +71,12 @@ public class PictureController {
 
     /**
      * 上传图片（可重新上传）
+     * 限流：20次/分钟
      */
     @PostMapping("/upload")
     @SaSpaceCheckPermission(value = SpaceUserPermissionConstant.PICTURE_UPLOAD)
+    @RateLimit(rate = 20, interval = 1, timeUnit = TimeUnit.MINUTES,
+               message = "上传请求过于频繁，请稍后再试")
     public BaseResponse<PictureVO> uploadPicture(
             @RequestPart("file") MultipartFile multipartFile,
             PictureUploadRequest pictureUploadRequest,
@@ -331,6 +335,37 @@ public class PictureController {
         CreateOutPaintingTaskResponse response =
                 pictureApplicationService.createPictureOutPaintingTask(createPictureOutPaintingTaskRequest, loginUser);
         return ResultUtils.success(response);
+    }
+
+    /**
+     * ES 全文搜索（支持关键词、分类、标签组合搜索）
+     * 限流：10次/秒
+     * <p>
+     * 搜索策略：ES 优先（全文搜索 + 模糊匹配 + 加权评分），
+     * ES 不可用时自动降级为 MySQL LIKE 搜索。
+     * <p>
+     * 搜索字段权重：name(3.0) > introduction(2.0) > tags(1.0)
+     */
+    @PostMapping("/search")
+    @RateLimit(rate = 10, interval = 1, timeUnit = TimeUnit.SECONDS,
+               message = "搜索请求过于频繁，请稍后再试")
+    public BaseResponse<Page<PictureVO>> searchPictures(
+            @RequestBody PictureQueryRequest pictureQueryRequest,
+            HttpServletRequest request) {
+        ThrowUtils.throwIf(pictureQueryRequest == null, ErrorCode.PARAMS_ERROR);
+        long current = pictureQueryRequest.getCurrent();
+        long size = pictureQueryRequest.getPageSize();
+        ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR, "单页最多 20 条");
+
+        String searchText = pictureQueryRequest.getSearchText();
+        String category = pictureQueryRequest.getCategory();
+        List<String> tags = pictureQueryRequest.getTags();
+        Long spaceId = pictureQueryRequest.getSpaceId();
+
+        // ES 优先搜索
+        Page<Picture> picturePage = pictureApplicationService.searchPictures(
+                searchText, category, tags, spaceId, current, size);
+        return ResultUtils.success(pictureApplicationService.getPictureVOPage(picturePage, request));
     }
 
     /**

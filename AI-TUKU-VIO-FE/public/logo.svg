@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <!-- 背景圆 -->
+  <circle cx="256" cy="256" r="256" fill="#1677ff"/>
+  <!-- 山形图标（代表图库） -->
+  <path d="M120 360 L220 240 L310 300 L390 180 L420 360 Z" fill="#ffffff" opacity="0.95"/>
+  <!-- 太阳/镜头 -->
+  <circle cx="340" cy="200" r="40" fill="#1677ff"/>
+  <circle cx="340" cy="200" r="28" fill="#ffffff" opacity="0.9"/>
+  <!-- AI 星星 -->
+  <path d="M160 180 L165 195 L180 195 L168 204 L172 219 L160 210 L148 219 L152 204 L140 195 L155 195 Z" fill="#ffd700"/>
+</svg>

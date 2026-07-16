@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -124,5 +125,11 @@ public class PictureApplicationServiceImpl extends ServiceImpl<PictureMapper, Pi
     public CreateOutPaintingTaskResponse createPictureOutPaintingTask(
             CreatePictureOutPaintingTaskRequest createPictureOutPaintingTaskRequest, User loginUser) {
         return pictureDomainService.createPictureOutPaintingTask(createPictureOutPaintingTaskRequest, loginUser);
+    }
+
+    @Override
+    public Page<Picture> searchPictures(String searchText, String category, List<String> tags,
+                                         Long spaceId, long current, long size) {
+        return pictureDomainService.searchPictures(searchText, category, tags, spaceId, current, size);
     }
 }

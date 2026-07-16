@@ -4,7 +4,11 @@
       <!-- 图片预览 -->
       <a-col :sm="24" :md="16" :xl="18">
         <a-card title="图片预览">
-          <a-image :src="picture.url" style="max-height: 600px; object-fit: contain" />
+          <LazyImage
+            :src="picture.url"
+            :alt="picture.name ?? '图片预览'"
+            fit="contain"
+          />
         </a-card>
       </a-col>
       <!-- 图片信息区域 -->
@@ -93,6 +97,7 @@ import {
 import { useRouter } from 'vue-router'
 import { useLoginUserStore } from '@/stores/useLoginUserStore'
 import { downloadImage, formatSize, toHexColor } from '@/components/utils'
+import LazyImage from '@/components/LazyImage.vue'
 
 
 interface Props {

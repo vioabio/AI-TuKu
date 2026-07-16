@@ -6,9 +6,11 @@ import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.vio.aitukuviobe.domain.picture.entity.Picture;
 import com.vio.aitukuviobe.domain.picture.repository.PictureRepository;
 import com.vio.aitukuviobe.domain.picture.service.PictureDomainService;
+import com.vio.aitukuviobe.domain.picture.service.PictureSearchService;
 import com.vio.aitukuviobe.domain.picture.valueobject.PictureReviewStatusEnum;
 import com.vio.aitukuviobe.domain.space.entity.Space;
 import com.vio.aitukuviobe.domain.space.repository.SpaceRepository;
@@ -72,6 +74,9 @@ public class PictureDomainServiceImpl implements PictureDomainService {
 
     @Resource
     private TransactionTemplate transactionTemplate;
+
+    @Resource
+    private PictureSearchService pictureSearchService;
 
     @Override
     public void validPicture(Picture picture) {
@@ -182,6 +187,8 @@ public class PictureDomainServiceImpl implements PictureDomainService {
             }
             return true;
         });
+        // 异步同步到 ES 索引（不影响主流程）
+        pictureSearchService.syncToEs(picture);
         return PictureVO.objToVo(picture);
     }
 
@@ -285,6 +292,8 @@ public class PictureDomainServiceImpl implements PictureDomainService {
         fillReviewParams(picture, loginUser);
         boolean result = pictureRepository.updateById(picture);
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
+        // 异步同步到 ES 索引
+        pictureSearchService.syncToEs(picture);
     }
 
     @Override
@@ -308,6 +317,8 @@ public class PictureDomainServiceImpl implements PictureDomainService {
             }
             return true;
         });
+        // 从 ES 索引中移除
+        pictureSearchService.deleteFromEs(pictureId);
         this.clearPictureFile(oldPicture);
     }
 
@@ -354,6 +365,22 @@ public class PictureDomainServiceImpl implements PictureDomainService {
         taskRequest.setInput(input);
         taskRequest.setParameters(createPictureOutPaintingTaskRequest.getParameters());
         return aliYunAiApi.createOutPaintingTask(taskRequest);
+    }
+
+    @Override
+    public Page<Picture> searchPictures(String searchText, String category, List<String> tags,
+                                         Long spaceId, long current, long size) {
+        return pictureSearchService.advancedSearch(searchText, category, tags, spaceId, 1, current, size);
+    }
+
+    @Override
+    public void syncPictureToEs(Picture picture) {
+        pictureSearchService.syncToEs(picture);
+    }
+
+    @Override
+    public void deletePictureFromEs(Long pictureId) {
+        pictureSearchService.deleteFromEs(pictureId);
     }
 
     @Override

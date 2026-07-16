@@ -1,0 +1,37 @@
+# ============================================================
+# Docker 环境配置
+# 在 docker-compose 中通过 SPRING_PROFILES_ACTIVE=docker 激活
+# 所有敏感信息通过环境变量注入，不写入文件
+# ============================================================
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://mysql:3306/vio_tuku?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai}
+    username: ${SPRING_DATASOURCE_USERNAME:root}
+    password: ${SPRING_DATASOURCE_PASSWORD:root123}
+  redis:
+    host: ${SPRING_REDIS_HOST:redis}
+    port: ${SPRING_REDIS_PORT:6379}
+
+# 腾讯云 COS 配置（从环境变量注入）
+cos:
+  client:
+    host: ${COS_CLIENT_HOST:}
+    secretId: ${COS_SECRET_ID:}
+    secretKey: ${COS_SECRET_KEY:}
+    region: ${COS_REGION:}
+    bucket: ${COS_BUCKET:}
+
+# 阿里云 AI 配置
+aliYunAi:
+  apiKey: ${ALIYUN_AI_API_KEY:}
+
+# 生产环境日志（WARN 级别减少日志量）
+logging:
+  level:
+    root: WARN
+    com.vio.aitukuviobe: INFO
+
+# MyBatis-Plus — 生产环境关闭 SQL 日志
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.nologging.NoLoggingImpl
