@@ -1,0 +1,43 @@
+# ============================================================
+# AI-TuKu WebAssembly 图片预处理模块 (第 9.2 节)
+#
+# 技术栈: Rust + wasm-pack → WebAssembly
+# 功能: 浏览器端图片预处理 (缩放/格式转换/EXIF 剥离/缩略图生成)
+#
+# 开发环境安装:
+#   1. 安装 Rust: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+#   2. 安装 wasm-pack: cargo install wasm-pack
+#   3. 构建 WASM: cd wasm && ./build.sh
+#   4. 前端使用: import { resizeImage, stripExif, ... } from '@/utils/wasmLoader'
+# ============================================================
+
+[package]
+name = "aituku-image-processor"
+version = "0.1.0"
+edition = "2021"
+description = "AI-TuKu 浏览器端图片预处理 (WASM) — 缩放/格式转换/EXIF 剥离"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+# wasm-bindgen: Rust ↔ JavaScript 互操作
+wasm-bindgen = "0.2"
+# 图片处理核心库
+image = { version = "0.25", default-features = false, features = ["jpeg", "png", "webp", "gif", "bmp"] }
+# 颜色量化 (生成调色板)
+color-quant = "0.1"
+# JavaScript 错误序列化
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+# Web 控制台日志
+web-sys = { version = "0.3", features = ["console"] }
+# 更好的 panic 信息
+console_error_panic_hook = "0.1"
+
+[profile.release]
+# 优化体积（WASM 场景下体积比速度更重要）
+opt-level = "s"
+lto = true
+codegen-units = 1
+strip = true

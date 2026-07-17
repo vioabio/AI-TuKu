@@ -10,6 +10,11 @@ on:
     branches: [main]
   push:
     branches: [main]
+  # 允许 deploy.yml 以 reusable workflow 方式调用本流水线
+  workflow_call:
+    secrets:
+      GITHUB_TOKEN:
+        required: false
 
 env:
   BACKEND_DIR: AI-TUKU-VIO-BE
@@ -48,11 +53,19 @@ jobs:
         run: |
           echo "检查核心模块覆盖率 ≥ 70%..."
           if [ -f ${{ env.BACKEND_DIR }}/target/site/jacoco/index.html ]; then
-            LINE_COVERAGE=$(grep -oP 'Total.*?ctr2">\K[0-9]+(?=%)' ${{ env.BACKEND_DIR }}/target/site/jacoco/index.html | head -1 || echo "0")
-            echo "行覆盖率: ${LINE_COVERAGE}%"
-            if [ "${LINE_COVERAGE}" -lt 70 ]; then
-              echo "::warning::覆盖率 ${LINE_COVERAGE}% 低于 70% 阈值"
+            # 从 JaCoCo HTML 报告的 footer 提取行覆盖率
+            LINE_COVERAGE=$(grep -oP 'Total[^<]*<td[^>]*>\K[0-9]+(?=%)' ${{ env.BACKEND_DIR }}/target/site/jacoco/index.html | head -1 || echo "0")
+            if [ -z "$LINE_COVERAGE" ]; then
+              LINE_COVERAGE=$(grep -oP '<tfoot>.*?ctr2">\K[0-9]+' ${{ env.BACKEND_DIR }}/target/site/jacoco/index.html | head -1 || echo "N/A")
             fi
+            echo "行覆盖率: ${LINE_COVERAGE}%"
+            if [ "$LINE_COVERAGE" != "N/A" ] && [ "${LINE_COVERAGE}" -lt 70 ] 2>/dev/null; then
+              echo "::warning::覆盖率 ${LINE_COVERAGE}% 低于 70% 阈值"
+            elif [ "$LINE_COVERAGE" = "N/A" ]; then
+              echo "::notice::无法解析覆盖率，请检查 JaCoCo 报告格式"
+            fi
+          else
+            echo "::notice::未找到 JaCoCo 报告，跳过覆盖率检查"
           fi
 
   # ========== 前端单元测试 ==========

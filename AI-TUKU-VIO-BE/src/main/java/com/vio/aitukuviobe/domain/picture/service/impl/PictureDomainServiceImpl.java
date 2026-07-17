@@ -18,9 +18,15 @@ import com.vio.aitukuviobe.domain.user.entity.User;
 import com.vio.aitukuviobe.domain.user.repository.UserRepository;
 import com.vio.aitukuviobe.domain.user.service.UserDomainService;
 import com.vio.aitukuviobe.infrastructure.api.CosManager;
+import com.vio.aitukuviobe.infrastructure.ai.model.ModerationResult;
+import com.vio.aitukuviobe.infrastructure.ai.model.OutPaintingResult;
+import com.vio.aitukuviobe.infrastructure.ai.model.TagsResult;
 import com.vio.aitukuviobe.infrastructure.api.aliyunai.AliYunAiApi;
 import com.vio.aitukuviobe.infrastructure.api.aliyunai.model.CreateOutPaintingTaskRequest;
 import com.vio.aitukuviobe.infrastructure.api.aliyunai.model.CreateOutPaintingTaskResponse;
+import com.vio.aitukuviobe.domain.picture.service.ModerationAiService;
+import com.vio.aitukuviobe.domain.picture.service.PictureAiService;
+import com.vio.aitukuviobe.domain.picture.service.SearchAiService;
 import com.vio.aitukuviobe.infrastructure.exception.BusinessException;
 import com.vio.aitukuviobe.infrastructure.exception.ErrorCode;
 import com.vio.aitukuviobe.infrastructure.exception.ThrowUtils;
@@ -77,6 +83,19 @@ public class PictureDomainServiceImpl implements PictureDomainService {
 
     @Resource
     private PictureSearchService pictureSearchService;
+
+    // ============================================================
+    // LangChain4j AI Services (第 20 章 — AI 框架工程化)
+    // 由 LangChain4jConfig 通过 AiServices.builder() 创建代理
+    // ============================================================
+    @Resource
+    private PictureAiService pictureAiService;
+
+    @Resource
+    private ModerationAiService moderationAiService;
+
+    @Resource
+    private SearchAiService searchAiService;
 
     @Override
     public void validPicture(Picture picture) {
@@ -365,6 +384,125 @@ public class PictureDomainServiceImpl implements PictureDomainService {
         taskRequest.setInput(input);
         taskRequest.setParameters(createPictureOutPaintingTaskRequest.getParameters());
         return aliYunAiApi.createOutPaintingTask(taskRequest);
+    }
+
+    // ============================================================
+    // LangChain4j AI 方法 (第 20 章)
+    // ============================================================
+
+    @Override
+    public OutPaintingResult createOutPaintingTask(
+            CreatePictureOutPaintingTaskRequest request, User loginUser) {
+        Long pictureId = request.getPictureId();
+        Picture picture = Optional.ofNullable(pictureRepository.getById(pictureId))
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_ERROR));
+        checkPictureAuth(loginUser, picture);
+
+        // 一行调用 — 框架自动处理 HTTP + JSON + 重试 + 错误处理
+        var params = request.getParameters();
+        OutPaintingResult result = pictureAiService.outPainting(
+                picture.getUrl(),
+                params.getXScale() != null ? params.getXScale() : 1.0,
+                params.getYScale() != null ? params.getYScale() : 1.0
+        );
+
+        log.info("[LangChain4j] 扩图任务已创建: pictureId={}, taskId={}, status={}",
+                pictureId, result.getTaskId(), result.getTaskStatus());
+        return result;
+    }
+
+    @Override
+    public TagsResult extractTags(Picture picture) {
+        if (picture == null) {
+            return TagsResult.builder()
+                    .tags(Collections.emptyList())
+                    .confidence(0.0)
+                    .build();
+        }
+
+        try {
+            TagsResult result = pictureAiService.extractTags(
+                    picture.getName(),
+                    picture.getCategory() != null ? picture.getCategory() : "未分类",
+                    picture.getIntroduction() != null ? picture.getIntroduction() : ""
+            );
+
+            log.info("[LangChain4j] 标签提取完成: pictureId={}, tags={}, category={}, confidence={}",
+                    picture.getId(), result.getTags(), result.getSuggestedCategory(), result.getConfidence());
+            return result;
+        } catch (Exception e) {
+            log.error("[LangChain4j] 标签提取失败: pictureId={}", picture.getId(), e);
+            return TagsResult.builder()
+                    .tags(Collections.emptyList())
+                    .confidence(0.0)
+                    .build();
+        }
+    }
+
+    @Override
+    public ModerationResult moderateContent(Picture picture) {
+        if (picture == null) {
+            return ModerationResult.builder().safe(true).confidence(1.0).build();
+        }
+
+        try {
+            ModerationResult result = moderationAiService.moderateContent(
+                    picture.getName(),
+                    picture.getIntroduction() != null ? picture.getIntroduction() : "",
+                    picture.getTags() != null ? picture.getTags() : "[]",
+                    picture.getCategory() != null ? picture.getCategory() : "未分类"
+            );
+
+            log.info("[LangChain4j] 内容审核完成: pictureId={}, safe={}, confidence={}, action={}",
+                    picture.getId(), result.getSafe(), result.getConfidence(), result.getSuggestedAction());
+            return result;
+        } catch (Exception e) {
+            log.error("[LangChain4j] 内容审核失败: pictureId={}", picture.getId(), e);
+            // 审核失败默认安全（人工兜底）
+            return ModerationResult.builder()
+                    .safe(true)
+                    .confidence(0.0)
+                    .suggestedAction("MANUAL_REVIEW")
+                    .reason("AI 审核服务异常，转人工审核")
+                    .build();
+        }
+    }
+
+    @Override
+    public void autoTagAndModerate(Picture picture) {
+        // 1. 自动标签提取
+        TagsResult tagsResult = extractTags(picture);
+        if (tagsResult.getTags() != null && !tagsResult.getTags().isEmpty()) {
+            picture.setTags(JSONUtil.toJsonStr(tagsResult.getTags()));
+            if (tagsResult.getSuggestedCategory() != null && picture.getCategory() == null) {
+                picture.setCategory(tagsResult.getSuggestedCategory());
+            }
+            pictureRepository.updateById(picture);
+            log.info("[LangChain4j] 自动标签已写入: pictureId={}, tags={}", picture.getId(), tagsResult.getTags());
+        }
+
+        // 2. 内容审核
+        ModerationResult moderation = moderateContent(picture);
+        if (moderation.getSafe() != null && !moderation.getSafe()) {
+            if (moderation.getConfidence() != null && moderation.getConfidence() >= 0.9) {
+                // 高置信度违规 → 自动拒绝
+                picture.setReviewStatus(PictureReviewStatusEnum.REJECT.getValue());
+                picture.setReviewMessage("AI 审核拒绝: " + moderation.getReason());
+                log.warn("[LangChain4j] 图片自动拒绝: pictureId={}, reason={}", picture.getId(), moderation.getReason());
+            } else {
+                // 低置信度 → 待人工审核
+                picture.setReviewStatus(PictureReviewStatusEnum.PENDING.getValue());
+                picture.setReviewMessage("AI 审查标记: " + moderation.getReason());
+                log.info("[LangChain4j] 图片标记待审: pictureId={}, reason={}", picture.getId(), moderation.getReason());
+            }
+            pictureRepository.updateById(picture);
+        } else {
+            // 内容安全 → 自动通过
+            picture.setReviewStatus(PictureReviewStatusEnum.PASS.getValue());
+            picture.setReviewMessage("AI 审核通过");
+            pictureRepository.updateById(picture);
+            log.info("[LangChain4j] 图片自动通过: pictureId={}", picture.getId());
+        }
     }
 
     @Override

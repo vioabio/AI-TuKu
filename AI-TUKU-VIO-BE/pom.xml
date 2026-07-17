@@ -8,7 +8,8 @@
     <name>AI-TUKU-vio-BE</name>
     <description>AI-TUKU-vio-BE</description>
     <properties>
-        <java.version>11</java.version>
+        <java.version>17</java.version>
+        <langchain4j.version>1.0.0-beta2</langchain4j.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <spring-boot.version>2.7.6</spring-boot.version>
@@ -209,6 +210,61 @@
             <groupId>io.zipkin.reporter2</groupId>
             <artifactId>zipkin-reporter-brave</artifactId>
         </dependency>
+
+        <!-- ============================================================ -->
+        <!-- Part 9: 新技术引入 — GraphQL + Kafka Streams               -->
+        <!-- ============================================================ -->
+        <!-- Spring GraphQL (Spring Boot 2.7+ 原生支持) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-graphql</artifactId>
+        </dependency>
+        <!-- GraphQL Java Extended Scalars (DateTime/JSON 等扩展类型) -->
+        <dependency>
+            <groupId>com.graphql-java</groupId>
+            <artifactId>graphql-java-extended-scalars</artifactId>
+            <version>21.0</version>
+        </dependency>
+        <!-- Spring Kafka (Producer + Consumer 基础) -->
+        <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka</artifactId>
+        </dependency>
+        <!-- Kafka Streams (事件处理拓扑 + 状态存储) -->
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-streams</artifactId>
+        </dependency>
+        <!-- Jackson JSR310 (Java 8 时间序列化支持) -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+        </dependency>
+
+        <!-- ============================================================ -->
+        <!-- Part 20: LangChain4j AI 框架工程化                           -->
+        <!-- 核心: langchain4j (框架) + langchain4j-dashscope (阿里云百炼) -->
+        <!-- 注: 使用 Builder 模式而非 @AiService 注解                     -->
+        <!--     因 @AiService 需要 Spring Boot 3.x (待 1.1 节升级)       -->
+        <!-- ============================================================ -->
+        <!-- LangChain4j 核心 (LLM 抽象 / ChatMemory / RAG / Tools) -->
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j</artifactId>
+            <version>${langchain4j.version}</version>
+        </dependency>
+        <!-- LangChain4j DashScope 集成 (阿里云百炼 / 通义千问) -->
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-dashscope</artifactId>
+            <version>${langchain4j.version}</version>
+        </dependency>
+        <!-- 可选: OpenAI 兼容 (模型切换 / OneAPI 中转) -->
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-open-ai</artifactId>
+            <version>${langchain4j.version}</version>
+        </dependency>
     </dependencies>
     <dependencyManagement>
         <dependencies>
@@ -236,7 +292,7 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.11.0</version>
                 <configuration>
-                    <release>11</release>
+                    <release>17</release>
                     <encoding>UTF-8</encoding>
                 </configuration>
             </plugin>

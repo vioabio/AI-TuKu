@@ -53,6 +53,21 @@ knife4j:
 #    region: xxx
 #    bucket: xxx
 
+# ============================================================
+# LangChain4j AI 框架配置 (第 20 章)
+# 注: 详细配置见 application-langchain4j.yml
+# ============================================================
+aituku:
+  ai:
+    enabled: true
+    provider: dashscope
+    dashscope-api-key: ${ALIYUN_AI_API_KEY:your-api-key}
+    chat-model-name: qwen-turbo
+    image-model-name: image-out-painting
+    max-retries: 3
+    timeout: 60
+
+# 旧配置 (已废弃，保留兼容)
 ## 阿里云 AI 配置
 aliYunAi:
   apiKey: your-api-key

@@ -53,5 +53,20 @@ create table if not exists picture
     INDEX idx_category (category),            -- 提升基于分类的查询性能
     INDEX idx_tags (tags(191)),               -- 提升基于标签的查询性能 (前缀索引，兼容 MySQL 5.6 767字节限制)
     INDEX idx_userId (userId),                -- 提升基于用户 ID 的查询性能
-    INDEX idx_reviewStatus (reviewStatus)     -- 提升基于审核状态的查询性能
+    INDEX idx_reviewStatus (reviewStatus),    -- 提升基于审核状态的查询性能
+    INDEX idx_spaceId_reviewStatus (spaceId, reviewStatus),  -- 第8.1节: 加速空间图片列表分页查询
+    INDEX idx_userId_createTime (userId, createTime)         -- 第8.1节: 加速我的图片按时间排序查询
 ) comment '图片' collate = utf8mb4_unicode_ci;
+
+-- 空间成员表 (DDD 中 space_user 未在 create_table.sql 中定义，补充)
+create table if not exists space_user
+(
+    id          bigint auto_increment comment 'id' primary key,
+    spaceId     bigint                                 not null comment '空间 id',
+    userId      bigint                                 not null comment '用户 id',
+    spaceRole   varchar(64)  default 'viewer'          not null comment '空间角色: viewer/editor/admin',
+    createTime  datetime     default CURRENT_TIMESTAMP not null comment '创建时间',
+    updateTime  datetime     default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
+    isDelete    tinyint      default 0                 not null comment '是否删除',
+    UNIQUE INDEX uk_spaceId_userId (spaceId, userId)   -- 第8.1节: 加速权限校验 + 防重复加入
+) comment '空间成员' collate = utf8mb4_unicode_ci;

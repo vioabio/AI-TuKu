@@ -17,7 +17,13 @@ import org.springframework.stereotype.Component;
 
 /**
  * 阿里云百炼 AI API 调用类
+ *
+ * @deprecated 已由 LangChain4j AI 框架替代 (第 20 章)
+ *             保留此类用于向后兼容，新功能请使用 {@link com.vio.aitukuviobe.domain.picture.service.PictureAiService}
+ * @see com.vio.aitukuviobe.domain.picture.service.PictureAiService
+ * @see com.vio.aitukuviobe.infrastructure.ai.config.LangChain4jConfig
  */
+@Deprecated
 @Slf4j
 @Component
 public class AliYunAiApi {

@@ -1,0 +1,63 @@
+# ============================================================
+# AI-TuKu LangChain4j AI 框架 Profile 配置 (第 20 章)
+#
+# 激活方式:
+#   spring.profiles.include: langchain4j
+# 或启动参数:
+#   --spring.profiles.active=local,langchain4j
+#
+# 前置条件:
+#   1. Java 17+ (LangChain4j 最低要求)
+#   2. 阿里云 DashScope API Key (https://dashscope.aliyun.com/)
+# ============================================================
+
+aituku:
+  ai:
+    # 启用 AI 框架（默认 true，无 API Key 时优雅降级）
+    enabled: true
+    # 模型提供商: dashscope / openai
+    provider: dashscope
+    # 阿里云百炼 API Key
+    # 获取方式: https://dashscope.aliyun.com/ → API-KEY 管理
+    dashscope-api-key: ${ALIYUN_AI_API_KEY:your-api-key}
+
+    # 模型配置
+    chat-model-name: qwen-turbo        # 文本模型: qwen-turbo (性价比) / qwen-plus (均衡) / qwen-max (最强)
+    image-model-name: image-out-painting  # 图像模型: 通义万相
+    temperature: 0.7                   # 生成温度 (0.0=确定性, 1.0=创意性)
+    max-tokens: 2000                   # 最大输出 Token
+
+    # 重试配置
+    max-retries: 3                     # 失败重试次数
+    timeout: 60                        # 请求超时 (秒)
+
+    # OpenAI 兼容配置 (provider=openai 时生效)
+    openai-base-url: ${OPENAI_BASE_URL:https://api.openai.com/v1}
+    openai-api-key: ${OPENAI_API_KEY:}
+
+# ============================================================
+# 模型切换示例
+# ============================================================
+# 场景 1: 使用阿里云 DashScope (默认)
+#   aituku.ai.provider=dashscope
+#
+# 场景 2: 切换到 OpenAI
+#   aituku.ai.provider=openai
+#   aituku.ai.openai-api-key=sk-xxx
+#
+# 场景 3: 通过 OneAPI 中转 (兼容任何模型)
+#   aituku.ai.provider=openai
+#   aituku.ai.openai-base-url=http://your-oneapi-host/v1
+#   aituku.ai.openai-api-key=your-oneapi-key
+#   aituku.ai.chat-model-name=gpt-4o-mini
+
+# ============================================================
+# LangChain4j 底层配置 (可选, 通常用默认值)
+# ============================================================
+langchain4j:
+  dashscope:
+    chat-model:
+      max-retries: 3
+      timeout: 60s
+      log-requests: ${logging.level.dev.langchain4j:INFO}
+      log-responses: ${logging.level.dev.langchain4j:INFO}

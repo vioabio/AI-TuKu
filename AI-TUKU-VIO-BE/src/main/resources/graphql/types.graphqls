@@ -1,0 +1,217 @@
+# ============================================================
+# AI-TuKu GraphQL 类型定义 (第 9.1 节)
+# ============================================================
+
+# ============================================================
+# 用户类型
+# ============================================================
+type User {
+    id: ID!
+    userAccount: String!
+    userName: String
+    userAvatar: String
+    userProfile: String
+    userRole: UserRole!
+    createTime: DateTime!
+}
+
+enum UserRole {
+    USER
+    ADMIN
+}
+
+# ============================================================
+# 图片类型
+# ============================================================
+type Picture {
+    id: ID!
+    url: String!
+    thumbnailUrl: String
+    name: String!
+    introduction: String
+    category: String
+    tags: [String!]
+    picSize: Int             # 字节
+    picSizeFormatted: String # "1.2 MB"
+    picWidth: Int
+    picHeight: Int
+    picScale: Float
+    picFormat: String        # jpg/png/webp
+    picColor: String
+    # 关联
+    user: User!
+    space: Space
+    # 审核
+    reviewStatus: ReviewStatus!
+    reviewMessage: String
+    reviewer: User
+    reviewTime: DateTime
+    # 时间
+    createTime: DateTime!
+    editTime: DateTime
+    updateTime: DateTime!
+}
+
+enum ReviewStatus {
+    PENDING     # 待审核
+    APPROVED    # 已通过
+    REJECTED    # 已拒绝
+}
+
+enum PictureSort {
+    CREATE_TIME_DESC
+    CREATE_TIME_ASC
+    NAME_ASC
+    PIC_SIZE_DESC
+}
+
+type PictureConnection {
+    total: Int!
+    pages: Int!
+    current: Int!
+    records: [Picture!]!
+}
+
+# ============================================================
+# 图片输入类型
+# ============================================================
+input UploadPictureInput {
+    spaceId: ID
+    name: String!
+    introduction: String
+    category: String
+    tags: [String!]
+}
+
+input EditPictureInput {
+    id: ID!
+    name: String
+    introduction: String
+    category: String
+    tags: [String!]
+}
+
+# ============================================================
+# 空间类型
+# ============================================================
+type Space {
+    id: ID!
+    spaceName: String!
+    spaceLevel: SpaceLevel!
+    spaceType: SpaceType!
+    # 容量
+    maxSize: Int!           # 字节
+    maxSizeFormatted: String
+    maxCount: Int!
+    totalSize: Int!
+    totalSizeFormatted: String
+    totalCount: Int!
+    usagePercent: Float     # 容量使用率 0.0 ~ 1.0
+    # 关联
+    owner: User!
+    memberCount: Int!
+    # 时间
+    createTime: DateTime!
+    editTime: DateTime
+}
+
+enum SpaceLevel {
+    COMMON        # 普通版 — 100MB / 100张
+    PROFESSIONAL  # 专业版 — 1GB / 1000张
+    FLAGSHIP      # 旗舰版 — 10GB / 10000张
+}
+
+enum SpaceType {
+    PRIVATE  # 私有空间
+    TEAM     # 团队空间
+}
+
+enum SpaceRole {
+    VIEWER  # 查看者
+    EDITOR  # 编辑者
+    ADMIN   # 管理员
+}
+
+type SpaceConnection {
+    total: Int!
+    pages: Int!
+    current: Int!
+    records: [Space!]!
+}
+
+type SpaceMember {
+    id: ID!
+    user: User!
+    space: Space!
+    role: SpaceRole!
+    joinTime: DateTime!
+}
+
+# ============================================================
+# 空间输入类型
+# ============================================================
+input CreateSpaceInput {
+    spaceName: String!
+    spaceLevel: SpaceLevel = COMMON
+    spaceType: SpaceType = PRIVATE
+}
+
+input EditSpaceInput {
+    id: ID!
+    spaceName: String
+}
+
+# ============================================================
+# 空间分析
+# ============================================================
+type SpaceAnalyzeResult {
+    space: Space!
+    # 分类统计
+    categoryStats: [CategoryStat!]!
+    # 标签云
+    topTags: [TagStat!]!
+    # 时间趋势
+    uploadTrend: [DailyStat!]!
+    # 大小分布
+    sizeDistribution: SizeDistribution!
+}
+
+type CategoryStat {
+    category: String!
+    count: Int!
+    totalSize: Int!
+    totalSizeFormatted: String!
+}
+
+type TagStat {
+    tag: String!
+    count: Int!
+}
+
+type DailyStat {
+    date: String!
+    count: Int!
+}
+
+type SizeDistribution {
+    under100KB: Int!
+    under1MB: Int!
+    under10MB: Int!
+    over10MB: Int!
+}
+
+# ============================================================
+# AI 扩图
+# ============================================================
+type OutPaintingResult {
+    taskId: String!
+    status: TaskStatus!
+    outputImageUrl: String
+}
+
+enum TaskStatus {
+    PENDING
+    PROCESSING
+    SUCCEEDED
+    FAILED
+}

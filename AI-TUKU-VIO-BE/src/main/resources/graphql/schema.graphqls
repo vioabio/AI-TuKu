@@ -1,0 +1,67 @@
+# ============================================================
+# AI-TuKu GraphQL Schema (第 9.1 节)
+#
+# 基于 Spring GraphQL + Apollo Client
+# 减少 REST 接口数量，前端按需取字段
+# ============================================================
+
+# ---- 标量类型 ----
+scalar DateTime
+scalar JSON
+
+# ============================================================
+# Query — 查询入口
+# ============================================================
+type Query {
+    # 当前登录用户
+    currentUser: User
+
+    # 图片相关
+    picture(id: ID!): Picture
+    pictures(
+        spaceId: ID          # 空间 ID（可选，null 表示公共图库）
+        category: String     # 分类筛选
+        tags: [String!]      # 标签筛选
+        reviewStatus: Int    # 审核状态筛选
+        searchText: String   # 全文搜索（ES 优先）
+        page: Int = 1
+        size: Int = 20
+        sortBy: PictureSort = CREATE_TIME_DESC
+    ): PictureConnection!
+
+    # 空间相关
+    space(id: ID!): Space
+    mySpaces(page: Int = 1, size: Int = 10): SpaceConnection!
+
+    # 空间分析
+    spaceAnalyze(spaceId: ID!): SpaceAnalyzeResult
+
+    # 空间成员
+    spaceMembers(spaceId: ID!, role: SpaceRole): [SpaceMember!]!
+}
+
+# ============================================================
+# Mutation — 变更入口
+# ============================================================
+type Mutation {
+    # 图片操作
+    uploadPicture(input: UploadPictureInput!): Picture!
+    editPicture(input: EditPictureInput!): Picture!
+    deletePicture(id: ID!): Boolean!
+
+    # 审核
+    reviewPicture(id: ID!, status: ReviewStatus!, message: String): Picture!
+
+    # 空间操作
+    createSpace(input: CreateSpaceInput!): Space!
+    editSpace(input: EditSpaceInput!): Space!
+    deleteSpace(id: ID!): Boolean!
+
+    # 空间成员管理
+    addSpaceMember(spaceId: ID!, userId: ID!, role: SpaceRole!): SpaceMember!
+    removeSpaceMember(spaceId: ID!, userId: ID!): Boolean!
+    updateSpaceMemberRole(spaceId: ID!, userId: ID!, role: SpaceRole!): SpaceMember!
+
+    # AI 功能
+    outPainting(pictureId: ID!, xScale: Float!, yScale: Float!): OutPaintingResult!
+}

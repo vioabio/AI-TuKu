@@ -1,0 +1,32 @@
+# ============================================================
+# AI-TuKu 数据归档 Profile 配置 (第 8.2 节)
+#
+# 激活方式:
+#   spring.profiles.include: archive
+# 或启动参数:
+#   --spring.profiles.active=local,archive
+# ============================================================
+
+aituku:
+  # 启用定时任务调度（ScheduledTaskConfig + @Scheduled）
+  scheduling:
+    enabled: true
+  # 启用数据归档任务
+  archive:
+    enabled: true
+    # 归档阈值（天）：isDelete=1 且 updateTime 超过此天数的数据归档
+    retention-days: 30
+    # 归档数据清理阈值（天）：归档表中的数据超过此天数彻底删除
+    cleanup-days: 180
+    # 每次归档批次大小（避免大事务）
+    batch-size: 1000
+    # 图片归档 cron 表达式 (默认: 每天凌晨 3:05)
+    cron: "0 5 3 * * ?"
+    # 空间成员归档 cron 表达式 (默认: 每天凌晨 3:15)
+    space-user-cron: "0 15 3 * * ?"
+    # 归档清理 cron 表达式 (默认: 每周日凌晨 4:00)
+    cleanup-cron: "0 0 4 * * SUN"
+  # 启动时检查关键索引是否存在
+  index:
+    check:
+      enabled: true
