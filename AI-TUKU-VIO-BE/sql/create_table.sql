@@ -1,72 +1,103 @@
-# 创建库
-create database if not exists vio_tuku;
+-- ============================================================
+-- AI-TuKu 数据库建表脚本
+-- ============================================================
+-- 使用方法：在 IDEA 中右键 → Run 或在 mysql 命令行 source 此文件
+-- 数据库会自动创建（若已存在则跳过）
+-- ============================================================
 
-# 切换表
-use vio_tuku;
+CREATE DATABASE IF NOT EXISTS vio_tuku
+  DEFAULT CHARACTER SET utf8mb4
+  DEFAULT COLLATE utf8mb4_unicode_ci;
 
--- 用户表
-create table if not exists user
-(
-    id          bigint auto_increment comment 'id' primary key,
-    userAccount varchar(191)                          not null comment '账号',
-    userPassword varchar(512)                          not null comment '密码',
-    userName    varchar(191)                          null comment '用户昵称',
-    userAvatar  varchar(1024)                         null comment '用户头像',
-    userProfile varchar(512)                          null comment '用户简介',
-    userRole    varchar(256) default 'user'           not null comment '用户角色: user/admin',
-    editTime    datetime     default CURRENT_TIMESTAMP not null comment '编辑时间',
-    createTime  datetime     default CURRENT_TIMESTAMP not null comment '创建时间',
-    updateTime  datetime     default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
-    isDelete    tinyint     default 0                 not null comment '是否删除',
+USE vio_tuku;
+
+-- ============================================================
+-- 1. 用户表
+-- ============================================================
+CREATE TABLE IF NOT EXISTS user (
+    id          BIGINT AUTO_INCREMENT COMMENT 'id' PRIMARY KEY,
+    userAccount VARCHAR(191)                            NOT NULL COMMENT '账号',
+    userPassword VARCHAR(512)                           NOT NULL COMMENT '密码',
+    userName    VARCHAR(191)                            NULL COMMENT '用户昵称',
+    userAvatar  VARCHAR(1024)                           NULL COMMENT '用户头像',
+    userProfile VARCHAR(512)                            NULL COMMENT '用户简介',
+    userRole    VARCHAR(256) DEFAULT 'user'             NOT NULL COMMENT '用户角色: user/admin',
+    editTime    DATETIME     DEFAULT CURRENT_TIMESTAMP  NOT NULL COMMENT '编辑时间',
+    createTime  DATETIME     DEFAULT CURRENT_TIMESTAMP  NOT NULL COMMENT '创建时间',
+    updateTime  DATETIME     DEFAULT CURRENT_TIMESTAMP  NOT NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    isDelete    TINYINT      DEFAULT 0                  NOT NULL COMMENT '是否删除',
     UNIQUE KEY uk_userAccount (userAccount),
     INDEX idx_userName (userName)
-) comment '用户' collate = utf8mb4_unicode_ci;
+) COMMENT '用户' ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 图片表
-create table if not exists picture
-(
-    id             bigint auto_increment comment 'id' primary key,
-    url            varchar(512)                       not null comment '图片 url',
-    thumbnailUrl   varchar(512)                       null comment '缩略图 url',
-    name           varchar(128)                       not null comment '图片名称',
-    introduction   varchar(512)                       null comment '简介',
-    category       varchar(64)                        null comment '分类',
-    tags           varchar(512)                       null comment '标签（JSON 数组）',
-    picSize        bigint                             null comment '图片体积',
-    picWidth       int                                null comment '图片宽度',
-    picHeight      int                                null comment '图片高度',
-    picScale       double                             null comment '图片宽高比例',
-    picFormat      varchar(32)                        null comment '图片格式',
-    picColor       varchar(16)                        null comment '图片主色调',
-    userId         bigint                             not null comment '创建用户 id',
-    spaceId        bigint                             null comment '空间 id（0 表示公共空间）',
-    reviewStatus   int      default 0                 null comment '审核状态：0-待审核; 1-通过; 2-拒绝',
-    reviewMessage  varchar(512)                       null comment '审核信息',
-    reviewerId     bigint                             null comment '审核人 ID',
-    reviewTime     datetime                           null comment '审核时间',
-    createTime     datetime default CURRENT_TIMESTAMP not null comment '创建时间',
-    editTime       datetime default CURRENT_TIMESTAMP not null comment '编辑时间',
-    updateTime     datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
-    isDelete       tinyint  default 0                 not null comment '是否删除',
-    INDEX idx_name (name),                    -- 提升基于图片名称的查询性能
-    INDEX idx_introduction (introduction(191)), -- 用于模糊搜索图片简介 (前缀索引，兼容 MySQL 5.6 767字节限制)
-    INDEX idx_category (category),            -- 提升基于分类的查询性能
-    INDEX idx_tags (tags(191)),               -- 提升基于标签的查询性能 (前缀索引，兼容 MySQL 5.6 767字节限制)
-    INDEX idx_userId (userId),                -- 提升基于用户 ID 的查询性能
-    INDEX idx_reviewStatus (reviewStatus),    -- 提升基于审核状态的查询性能
-    INDEX idx_spaceId_reviewStatus (spaceId, reviewStatus),  -- 第8.1节: 加速空间图片列表分页查询
-    INDEX idx_userId_createTime (userId, createTime)         -- 第8.1节: 加速我的图片按时间排序查询
-) comment '图片' collate = utf8mb4_unicode_ci;
+-- ============================================================
+-- 2. 空间表（⚠ 之前缺失，现已补充）
+-- ============================================================
+CREATE TABLE IF NOT EXISTS space (
+    id          BIGINT AUTO_INCREMENT COMMENT 'id' PRIMARY KEY,
+    spaceName   VARCHAR(128)                            NOT NULL COMMENT '空间名称',
+    spaceLevel  INT         DEFAULT 0                   NOT NULL COMMENT '空间级别: 0-普通 1-专业 2-旗舰',
+    spaceType   INT         DEFAULT 0                   NOT NULL COMMENT '空间类型: 0-私有 1-团队',
+    maxSize     BIGINT      DEFAULT 104857600           NOT NULL COMMENT '最大容量(字节), 默认100MB',
+    maxCount    BIGINT      DEFAULT 100                 NOT NULL COMMENT '最大图片数',
+    totalSize   BIGINT      DEFAULT 0                   NOT NULL COMMENT '已使用容量(字节)',
+    totalCount  BIGINT      DEFAULT 0                   NOT NULL COMMENT '已使用图片数',
+    userId      BIGINT                                  NOT NULL COMMENT '创建用户 id',
+    createTime  DATETIME    DEFAULT CURRENT_TIMESTAMP   NOT NULL COMMENT '创建时间',
+    editTime    DATETIME    DEFAULT CURRENT_TIMESTAMP   NOT NULL COMMENT '编辑时间',
+    updateTime  DATETIME    DEFAULT CURRENT_TIMESTAMP   NOT NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    isDelete    TINYINT     DEFAULT 0                   NOT NULL COMMENT '是否删除',
+    INDEX idx_userId (userId),
+    INDEX idx_spaceName (spaceName)
+) COMMENT '空间' ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 空间成员表 (DDD 中 space_user 未在 create_table.sql 中定义，补充)
-create table if not exists space_user
-(
-    id          bigint auto_increment comment 'id' primary key,
-    spaceId     bigint                                 not null comment '空间 id',
-    userId      bigint                                 not null comment '用户 id',
-    spaceRole   varchar(64)  default 'viewer'          not null comment '空间角色: viewer/editor/admin',
-    createTime  datetime     default CURRENT_TIMESTAMP not null comment '创建时间',
-    updateTime  datetime     default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
-    isDelete    tinyint      default 0                 not null comment '是否删除',
-    UNIQUE INDEX uk_spaceId_userId (spaceId, userId)   -- 第8.1节: 加速权限校验 + 防重复加入
-) comment '空间成员' collate = utf8mb4_unicode_ci;
+-- ============================================================
+-- 3. 图片表
+-- ============================================================
+CREATE TABLE IF NOT EXISTS picture (
+    id             BIGINT AUTO_INCREMENT COMMENT 'id' PRIMARY KEY,
+    url            VARCHAR(512)                         NOT NULL COMMENT '图片 url',
+    thumbnailUrl   VARCHAR(512)                         NULL COMMENT '缩略图 url',
+    name           VARCHAR(128)                         NOT NULL COMMENT '图片名称',
+    introduction   VARCHAR(512)                         NULL COMMENT '简介',
+    category       VARCHAR(64)                          NULL COMMENT '分类',
+    tags           VARCHAR(512)                         NULL COMMENT '标签（JSON 数组）',
+    picSize        BIGINT                               NULL COMMENT '图片体积',
+    picWidth       INT                                  NULL COMMENT '图片宽度',
+    picHeight      INT                                  NULL COMMENT '图片高度',
+    picScale       DOUBLE                               NULL COMMENT '图片宽高比例',
+    picFormat      VARCHAR(32)                          NULL COMMENT '图片格式',
+    picColor       VARCHAR(16)                          NULL COMMENT '图片主色调',
+    userId         BIGINT                               NOT NULL COMMENT '创建用户 id',
+    spaceId        BIGINT                               NULL COMMENT '空间 id（NULL 表示公共空间）',
+    reviewStatus   INT        DEFAULT 0                 NOT NULL COMMENT '审核状态：0-待审核; 1-通过; 2-拒绝',
+    reviewMessage  VARCHAR(512)                         NULL COMMENT '审核信息',
+    reviewerId     BIGINT                               NULL COMMENT '审核人 ID',
+    reviewTime     DATETIME                             NULL COMMENT '审核时间',
+    createTime     DATETIME   DEFAULT CURRENT_TIMESTAMP NOT NULL COMMENT '创建时间',
+    editTime       DATETIME   DEFAULT CURRENT_TIMESTAMP NOT NULL COMMENT '编辑时间',
+    updateTime     DATETIME   DEFAULT CURRENT_TIMESTAMP NOT NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    isDelete       TINYINT    DEFAULT 0                 NOT NULL COMMENT '是否删除',
+    INDEX idx_name (name),
+    INDEX idx_introduction (introduction(191)),
+    INDEX idx_category (category),
+    INDEX idx_tags (tags(191)),
+    INDEX idx_userId (userId),
+    INDEX idx_reviewStatus (reviewStatus),
+    INDEX idx_spaceId_reviewStatus (spaceId, reviewStatus),
+    INDEX idx_userId_createTime (userId, createTime)
+) COMMENT '图片' ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================
+-- 4. 空间成员表
+-- ============================================================
+CREATE TABLE IF NOT EXISTS space_user (
+    id          BIGINT AUTO_INCREMENT COMMENT 'id' PRIMARY KEY,
+    spaceId     BIGINT                                  NOT NULL COMMENT '空间 id',
+    userId      BIGINT                                  NOT NULL COMMENT '用户 id',
+    spaceRole   VARCHAR(64)  DEFAULT 'viewer'           NOT NULL COMMENT '空间角色: viewer/editor/admin',
+    createTime  DATETIME     DEFAULT CURRENT_TIMESTAMP  NOT NULL COMMENT '创建时间',
+    updateTime  DATETIME     DEFAULT CURRENT_TIMESTAMP  NOT NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    isDelete    TINYINT      DEFAULT 0                  NOT NULL COMMENT '是否删除',
+    UNIQUE INDEX uk_spaceId_userId (spaceId, userId)
+) COMMENT '空间成员' ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

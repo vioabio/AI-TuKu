@@ -2,9 +2,13 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.vio</groupId>
+    <parent>
+        <groupId>com.vio</groupId>
+        <artifactId>AI-TuKu</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
     <artifactId>AI-TUKU-vio-BE</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
     <name>AI-TUKU-vio-BE</name>
     <description>AI-TUKU-vio-BE</description>
     <properties>
@@ -67,9 +71,10 @@
             <artifactId>caffeine</artifactId>
         </dependency>
         <!--接口文档生成工具：https://doc.xiaominfo.com/docs/quick-start-->
+        <!-- 注: 使用 OpenAPI3 (Springdoc) 而非 OpenAPI2 (Springfox)，因为 Springfox 已停维且与 Java 17+ 不兼容 -->
         <dependency>
             <groupId>com.github.xiaoymin</groupId>
-            <artifactId>knife4j-openapi2-spring-boot-starter</artifactId>
+            <artifactId>knife4j-openapi3-spring-boot-starter</artifactId>
             <version>4.4.0</version>
         </dependency>
         <dependency>
@@ -200,15 +205,15 @@
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-registry-prometheus</artifactId>
         </dependency>
-        <!-- Micrometer Tracing 分布式链路追踪（Zipkin/Brave） -->
+        <!-- Spring Cloud Sleuth 分布式链路追踪（Brave + Zipkin） -->
         <dependency>
-            <groupId>io.micrometer</groupId>
-            <artifactId>micrometer-tracing-bridge-brave</artifactId>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-sleuth</artifactId>
         </dependency>
-        <!-- Zipkin Reporter（将追踪数据发送到 Zipkin Server） -->
+        <!-- Sleuth Zipkin Reporter（将追踪数据发送到 Zipkin Server） -->
         <dependency>
-            <groupId>io.zipkin.reporter2</groupId>
-            <artifactId>zipkin-reporter-brave</artifactId>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-sleuth-zipkin</artifactId>
         </dependency>
 
         <!-- ============================================================ -->
@@ -253,10 +258,11 @@
             <artifactId>langchain4j</artifactId>
             <version>${langchain4j.version}</version>
         </dependency>
-        <!-- LangChain4j DashScope 集成 (阿里云百炼 / 通义千问) -->
+        <!-- LangChain4j DashScope 集成 (阿里云百炼 / 通义千问)
+             注: 1.0.0-alpha1 起迁移到 langchain4j-community 社区仓库 -->
         <dependency>
             <groupId>dev.langchain4j</groupId>
-            <artifactId>langchain4j-dashscope</artifactId>
+            <artifactId>langchain4j-community-dashscope</artifactId>
             <version>${langchain4j.version}</version>
         </dependency>
         <!-- 可选: OpenAI 兼容 (模型切换 / OneAPI 中转) -->
@@ -279,6 +285,22 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
                 <version>${spring-boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <!-- Spring Cloud BOM (2021.0.x 兼容 Spring Boot 2.7.x) -->
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>2021.0.9</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <!-- LangChain4j Community BOM (DashScope 等社区集成) -->
+            <dependency>
+                <groupId>dev.langchain4j</groupId>
+                <artifactId>langchain4j-community-bom</artifactId>
+                <version>${langchain4j.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -322,7 +344,6 @@
                 <version>${spring-boot.version}</version>
                 <configuration>
                     <mainClass>com.vio.aitukuviobe.AiTukuVioBeApplication</mainClass>
-                    <skip>true</skip>
                 </configuration>
                 <executions>
                     <execution>

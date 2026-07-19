@@ -6,7 +6,6 @@ import org.apache.shardingsphere.sharding.api.sharding.standard.StandardSharding
 
 import java.util.Collection;
 import java.util.LinkedHashSet;
-import java.util.Properties;
 
 /**
  * Picture 表按 spaceId 分片算法
@@ -69,16 +68,6 @@ public class PictureTableShardingAlgorithm implements StandardShardingAlgorithm<
                                          RangeShardingValue<Comparable<?>> shardingValue) {
         // 范围查询需要广播到所有分片
         return new LinkedHashSet<>(availableTargetNames);
-    }
-
-    @Override
-    public Properties getProps() {
-        return new Properties();
-    }
-
-    @Override
-    public void init(Properties properties) {
-        // 可通过 properties 自定义 SHARD_COUNT 和 TABLE_PREFIX
     }
 
     @Override

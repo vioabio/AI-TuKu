@@ -9,9 +9,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Component;
-
-import java.util.concurrent.CompletableFuture;
+import org.springframework.util.concurrent.ListenableFutureCallback;
 
 /**
  * 图片事件生产者 — 将图片操作发布到 Kafka，解耦业务逻辑和审计/缓存刷新
@@ -70,20 +70,24 @@ public class PictureEventProducer {
         record.headers().add("eventType", event.getEventType().name().getBytes());
         record.headers().add("timestamp", event.getTimestamp().toString().getBytes());
 
-        CompletableFuture<?> future = kafkaTemplate.send(record)
-            .thenAccept(result -> {
-                if (log.isDebugEnabled()) {
-                    log.debug("[事件发布] eventId={}, type={}, pictureId={}, partition={}, offset={}",
-                        event.getEventId(), event.getEventType(),
-                        event.getPictureId(),
-                        result.getRecordMetadata().partition(),
-                        result.getRecordMetadata().offset());
+        kafkaTemplate.send(record)
+            .addCallback(new ListenableFutureCallback<SendResult<String, String>>() {
+                @Override
+                public void onSuccess(SendResult<String, String> result) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("[事件发布] eventId={}, type={}, pictureId={}, partition={}, offset={}",
+                            event.getEventId(), event.getEventType(),
+                            event.getPictureId(),
+                            result.getRecordMetadata().partition(),
+                            result.getRecordMetadata().offset());
+                    }
                 }
-            })
-            .exceptionally(ex -> {
-                log.error("[事件发布] 发送失败, eventId={}, type={}, pictureId={}",
-                    event.getEventId(), event.getEventType(), event.getPictureId(), ex);
-                return null;
+
+                @Override
+                public void onFailure(Throwable ex) {
+                    log.error("[事件发布] 发送失败, eventId={}, type={}, pictureId={}",
+                        event.getEventId(), event.getEventType(), event.getPictureId(), ex);
+                }
             });
     }
 

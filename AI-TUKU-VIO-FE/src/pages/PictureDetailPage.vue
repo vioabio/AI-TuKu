@@ -4,11 +4,13 @@
       <!-- 图片预览 -->
       <a-col :sm="24" :md="16" :xl="18">
         <a-card title="图片预览">
-          <LazyImage
-            :src="picture.url"
-            :alt="picture.name ?? '图片预览'"
-            fit="contain"
-          />
+          <div class="detail-image-wrapper">
+            <LazyImage
+              :src="picture.url"
+              :alt="picture.name ?? '图片预览'"
+              fit="contain"
+            />
+          </div>
         </a-card>
       </a-col>
       <!-- 图片信息区域 -->
@@ -112,7 +114,7 @@ const picture = ref<API.PictureVO>({})
 const fetchPictureDetail = async () => {
   try {
     const res = await getPictureVoByIdUsingGet({
-      id: Number(props.id),
+      id: props.id as string,
     })
     if (res.data.code === 0 && res.data.data) {
       picture.value = res.data.data
@@ -147,7 +149,7 @@ const canDelete = computed(() => {
   return loginUser.id === user.id || loginUser.userRole === 'admin'
 })
 
-// 编辑
+// 编辑 — 跳转到 /add_picture（该页面同时处理上传和编辑）
 const doEdit = () => {
   router.push({
     path: '/add_picture',
@@ -164,7 +166,7 @@ const doDelete = async () => {
   if (!id) {
     return
   }
-  const res = await deletePictureUsingPost({ id })
+  const res = await deletePictureUsingPost({ id } as any)
   if (res.data.code === 0) {
     message.success('删除成功')
   } else {
@@ -181,5 +183,17 @@ const doDownload = () => {
 <style scoped>
 #pictureDetailPage {
   margin-bottom: 16px;
+}
+
+/* 图片预览容器：设置固定宽高比，确保 LazyImage 绝对定位子元素有参照 */
+.detail-image-wrapper {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+}
+
+.detail-image-wrapper :deep(.lazy-image-container) {
+  width: 100% !important;
+  height: 100% !important;
 }
 </style>

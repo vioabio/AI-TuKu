@@ -1,5 +1,6 @@
 package com.vio.aitukuviobe.infrastructure.search;
 
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.elasticsearch.repository.ElasticsearchRepository;
@@ -12,9 +13,12 @@ import java.util.List;
  * <p>
  * 继承 ElasticsearchRepository 获得基础 CRUD 能力，
  * Spring Data 自动根据方法名生成查询。
+ * <p>
+ * 使用 @Lazy 延迟初始化，避免 ES 不可用时阻塞应用启动。
  *
  * @author vivin
  */
+@Lazy
 @Repository
 public interface PictureEsRepository extends ElasticsearchRepository<PictureEsDocument, Long> {
 

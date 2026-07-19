@@ -91,7 +91,7 @@ public class AuditEventConsumer {
     )
     public void consume(
         String message,
-        @Header(KafkaHeaders.RECEIVED_PARTITION) int partition,
+        @Header(KafkaHeaders.RECEIVED_PARTITION_ID) int partition,
         @Header(KafkaHeaders.OFFSET) long offset
     ) {
         try {

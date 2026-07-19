@@ -1,6 +1,5 @@
 package com.vio.aitukuviobe.infrastructure.monitoring;
 
-import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.jvm.ClassLoaderMetrics;
 import io.micrometer.core.instrument.binder.jvm.JvmGcMetrics;
 import io.micrometer.core.instrument.binder.jvm.JvmMemoryMetrics;
@@ -14,7 +13,7 @@ import org.springframework.context.annotation.Configuration;
 /**
  * Micrometer 监控配置
  * <p>
- * 自动注册 JVM 和系统级指标到 Prometheus：
+ * 注册 JVM 和系统级指标到 Prometheus：
  * <ul>
  *   <li>JVM 内存：堆内存、非堆内存、各内存池使用量</li>
  *   <li>JVM GC：GC 次数、GC 耗时（按 GC 类型分组）</li>
@@ -22,6 +21,9 @@ import org.springframework.context.annotation.Configuration;
  *   <li>JVM 类加载：已加载类数、未加载类数</li>
  *   <li>系统指标：CPU 使用率、系统负载、进程运行时间</li>
  * </ul>
+ * <p>
+ * 注意：Bean 方法不直接注入 MeterRegistry，而是返回 MeterBinder 实例。
+ * Spring Boot 会在 MeterRegistry 就绪后自动调用 bindTo()，避免循环依赖。
  * <p>
  * HTTP 请求指标（自动采集，无需额外配置）：
  * <ul>
@@ -50,69 +52,39 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class MonitoringConfig {
 
-    /**
-     * 注册 JVM 内存指标
-     */
     @Bean
-    public JvmMemoryMetrics jvmMemoryMetrics(MeterRegistry registry) {
-        JvmMemoryMetrics metrics = new JvmMemoryMetrics();
-        metrics.bindTo(registry);
+    public JvmMemoryMetrics jvmMemoryMetrics() {
         log.debug("JVM 内存指标已注册");
-        return metrics;
+        return new JvmMemoryMetrics();
     }
 
-    /**
-     * 注册 JVM GC 指标
-     */
     @Bean
-    public JvmGcMetrics jvmGcMetrics(MeterRegistry registry) {
-        JvmGcMetrics metrics = new JvmGcMetrics();
-        metrics.bindTo(registry);
+    public JvmGcMetrics jvmGcMetrics() {
         log.debug("JVM GC 指标已注册");
-        return metrics;
+        return new JvmGcMetrics();
     }
 
-    /**
-     * 注册 JVM 线程指标
-     */
     @Bean
-    public JvmThreadMetrics jvmThreadMetrics(MeterRegistry registry) {
-        JvmThreadMetrics metrics = new JvmThreadMetrics();
-        metrics.bindTo(registry);
+    public JvmThreadMetrics jvmThreadMetrics() {
         log.debug("JVM 线程指标已注册");
-        return metrics;
+        return new JvmThreadMetrics();
     }
 
-    /**
-     * 注册 JVM 类加载指标
-     */
     @Bean
-    public ClassLoaderMetrics classLoaderMetrics(MeterRegistry registry) {
-        ClassLoaderMetrics metrics = new ClassLoaderMetrics();
-        metrics.bindTo(registry);
+    public ClassLoaderMetrics classLoaderMetrics() {
         log.debug("JVM 类加载指标已注册");
-        return metrics;
+        return new ClassLoaderMetrics();
     }
 
-    /**
-     * 注册 CPU / 系统指标
-     */
     @Bean
-    public ProcessorMetrics processorMetrics(MeterRegistry registry) {
-        ProcessorMetrics metrics = new ProcessorMetrics();
-        metrics.bindTo(registry);
+    public ProcessorMetrics processorMetrics() {
         log.debug("CPU 指标已注册");
-        return metrics;
+        return new ProcessorMetrics();
     }
 
-    /**
-     * 注册进程运行时间指标
-     */
     @Bean
-    public UptimeMetrics uptimeMetrics(MeterRegistry registry) {
-        UptimeMetrics metrics = new UptimeMetrics();
-        metrics.bindTo(registry);
+    public UptimeMetrics uptimeMetrics() {
         log.debug("运行时间指标已注册");
-        return metrics;
+        return new UptimeMetrics();
     }
 }

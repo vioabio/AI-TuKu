@@ -7,6 +7,7 @@ import org.apache.shardingsphere.infra.config.algorithm.AlgorithmConfiguration;
 import org.apache.shardingsphere.infra.config.mode.ModeConfiguration;
 import org.apache.shardingsphere.readwritesplitting.api.ReadwriteSplittingRuleConfiguration;
 import org.apache.shardingsphere.readwritesplitting.api.rule.ReadwriteSplittingDataSourceRuleConfiguration;
+import org.apache.shardingsphere.readwritesplitting.api.strategy.StaticReadwriteSplittingStrategyConfiguration;
 import org.apache.shardingsphere.sharding.api.config.ShardingRuleConfiguration;
 import org.apache.shardingsphere.sharding.api.config.rule.ShardingTableRuleConfiguration;
 import org.apache.shardingsphere.sharding.api.config.strategy.sharding.StandardShardingStrategyConfiguration;
@@ -136,13 +137,19 @@ public class ShardingSphereConfiguration {
         AlgorithmConfiguration loadBalancerAlg = new AlgorithmConfiguration(
                 "ROUND_ROBIN", loadBalancerProps);
 
+        // 静态读写分离策略配置
+        StaticReadwriteSplittingStrategyConfiguration staticStrategy =
+                new StaticReadwriteSplittingStrategyConfiguration(
+                        "write_ds",
+                        Arrays.asList("read_ds_0", "read_ds_1"));
+
         // 读写分离数据源规则
         ReadwriteSplittingDataSourceRuleConfiguration dsRule =
                 new ReadwriteSplittingDataSourceRuleConfiguration(
                         "ms_ds",                          // 逻辑数据源名
-                        "write_ds",                       // 写数据源
-                        Arrays.asList("read_ds_0", "read_ds_1"),  // 读数据源列表
-                        "round_robin");                    // 负载均衡器
+                        staticStrategy,                   // 静态读写分离策略
+                        null,                             // dynamicStrategy (null = 纯静态)
+                        "round_robin");                    // 负载均衡器名
 
         return new ReadwriteSplittingRuleConfiguration(
                 Collections.singletonList(dsRule),

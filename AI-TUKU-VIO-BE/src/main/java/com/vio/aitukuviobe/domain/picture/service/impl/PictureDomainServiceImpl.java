@@ -208,6 +208,14 @@ public class PictureDomainServiceImpl implements PictureDomainService {
         });
         // 异步同步到 ES 索引（不影响主流程）
         pictureSearchService.syncToEs(picture);
+        // 异步 AI 自动标签提取 + 内容审核（仅新上传的图片，不影响主流程）
+        if (pictureId == null) {
+            try {
+                autoTagAndModerate(picture);
+            } catch (Exception e) {
+                log.error("[LangChain4j] autoTagAndModerate 异常: pictureId={}", picture.getId(), e);
+            }
+        }
         return PictureVO.objToVo(picture);
     }
 
@@ -491,7 +499,7 @@ public class PictureDomainServiceImpl implements PictureDomainService {
                 log.warn("[LangChain4j] 图片自动拒绝: pictureId={}, reason={}", picture.getId(), moderation.getReason());
             } else {
                 // 低置信度 → 待人工审核
-                picture.setReviewStatus(PictureReviewStatusEnum.PENDING.getValue());
+                picture.setReviewStatus(PictureReviewStatusEnum.REVIEWING.getValue());
                 picture.setReviewMessage("AI 审查标记: " + moderation.getReason());
                 log.info("[LangChain4j] 图片标记待审: pictureId={}, reason={}", picture.getId(), moderation.getReason());
             }

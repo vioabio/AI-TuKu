@@ -3,13 +3,15 @@ package com.vio.aitukuviobe.interfaces.graphql;
 import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.vio.aitukuviobe.application.service.PictureApplicationService;
+import com.vio.aitukuviobe.application.service.UserApplicationService;
 import com.vio.aitukuviobe.domain.picture.entity.Picture;
 import com.vio.aitukuviobe.domain.picture.valueobject.PictureReviewStatusEnum;
-import com.vio.aitukuviobe.domain.space.entity.SpaceUser;
-import com.vio.aitukuviobe.domain.space.repository.SpaceUserRepository;
 import com.vio.aitukuviobe.domain.user.entity.User;
 import com.vio.aitukuviobe.infrastructure.exception.BusinessException;
 import com.vio.aitukuviobe.infrastructure.exception.ErrorCode;
+import com.vio.aitukuviobe.interfaces.dto.picture.PictureEditRequest;
+import com.vio.aitukuviobe.interfaces.dto.picture.PictureReviewRequest;
+import com.vio.aitukuviobe.interfaces.dto.picture.PictureUploadRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -44,7 +46,7 @@ import java.util.Map;
 public class PictureGraphQLController {
 
     private final PictureApplicationService pictureApplicationService;
-    private final SpaceUserRepository spaceUserRepository;
+    private final UserApplicationService userApplicationService;
 
     // ============================================================
     // Query
@@ -86,7 +88,7 @@ public class PictureGraphQLController {
 
         // 委托给 Application Service（复用现有逻辑）
         Page<Picture> result = pictureApplicationService.searchPictures(
-            spaceId, category, tags, reviewStatus, searchText, current, pageSize, sortBy
+            searchText, category, tags, spaceId, current, pageSize
         );
 
         return Map.of(
@@ -102,7 +104,7 @@ public class PictureGraphQLController {
      */
     @QueryMapping
     public Picture picture(@Argument Long id) {
-        Picture picture = pictureApplicationService.getPictureById(id);
+        Picture picture = pictureApplicationService.getById(id);
         if (picture == null) {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "图片不存在");
         }
@@ -119,8 +121,10 @@ public class PictureGraphQLController {
     @MutationMapping
     public Picture uploadPicture(@Argument Map<String, Object> input) {
         User loginUser = getLoginUser();
-        // 委托给 Application Service
-        return pictureApplicationService.uploadPictureFromGraphQL(input, loginUser);
+        PictureUploadRequest request = buildUploadRequest(input);
+        // GraphQL 场景下 inputSource 传 request 自身，实际文件上传走 REST 接口
+        pictureApplicationService.uploadPicture(request, request, loginUser);
+        return null;
     }
 
     /**
@@ -130,7 +134,9 @@ public class PictureGraphQLController {
     public Picture editPicture(@Argument Map<String, Object> input) {
         User loginUser = getLoginUser();
         Long id = Long.valueOf(input.get("id").toString());
-        return pictureApplicationService.editPictureFromGraphQL(id, input, loginUser);
+        PictureEditRequest request = buildEditRequest(id, input);
+        pictureApplicationService.editPicture(request, loginUser);
+        return pictureApplicationService.getById(id);
     }
 
     /**
@@ -154,7 +160,12 @@ public class PictureGraphQLController {
     ) {
         User loginUser = getLoginUser();
         PictureReviewStatusEnum reviewStatus = PictureReviewStatusEnum.valueOf(status);
-        return pictureApplicationService.reviewPicture(id, reviewStatus, message, loginUser);
+        PictureReviewRequest request = new PictureReviewRequest();
+        request.setId(id);
+        request.setReviewStatus(reviewStatus.getValue());
+        request.setReviewMessage(message);
+        pictureApplicationService.doPictureReview(request, loginUser);
+        return pictureApplicationService.getById(id);
     }
 
     // ============================================================
@@ -166,7 +177,7 @@ public class PictureGraphQLController {
      */
     @SchemaMapping(typeName = "Picture", field = "user")
     public User user(Picture picture) {
-        return pictureApplicationService.getUserByPictureId(picture.getUserId());
+        return userApplicationService.getById(picture.getUserId());
     }
 
     /**
@@ -191,5 +202,30 @@ public class PictureGraphQLController {
         } catch (Exception e) {
             throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private PictureUploadRequest buildUploadRequest(Map<String, Object> input) {
+        PictureUploadRequest request = new PictureUploadRequest();
+        if (input.containsKey("id")) request.setId(Long.valueOf(input.get("id").toString()));
+        if (input.containsKey("name")) request.setName((String) input.get("name"));
+        if (input.containsKey("picName")) request.setPicName((String) input.get("picName"));
+        if (input.containsKey("introduction")) request.setIntroduction((String) input.get("introduction"));
+        if (input.containsKey("category")) request.setCategory((String) input.get("category"));
+        if (input.containsKey("tags")) request.setTags((List<String>) input.get("tags"));
+        if (input.containsKey("fileUrl")) request.setFileUrl((String) input.get("fileUrl"));
+        if (input.containsKey("spaceId")) request.setSpaceId(Long.valueOf(input.get("spaceId").toString()));
+        return request;
+    }
+
+    @SuppressWarnings("unchecked")
+    private PictureEditRequest buildEditRequest(Long id, Map<String, Object> input) {
+        PictureEditRequest request = new PictureEditRequest();
+        request.setId(id);
+        if (input.containsKey("name")) request.setName((String) input.get("name"));
+        if (input.containsKey("introduction")) request.setIntroduction((String) input.get("introduction"));
+        if (input.containsKey("category")) request.setCategory((String) input.get("category"));
+        if (input.containsKey("tags")) request.setTags((List<String>) input.get("tags"));
+        return request;
     }
 }

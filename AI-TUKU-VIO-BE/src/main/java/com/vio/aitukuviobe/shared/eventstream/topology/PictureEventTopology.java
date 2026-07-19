@@ -12,6 +12,7 @@ import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.*;
 import org.apache.kafka.streams.state.KeyValueStore;
+import org.apache.kafka.streams.state.WindowStore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -96,7 +97,7 @@ public class PictureEventTopology {
             .aggregate(
                 () -> 0L,
                 (operatorId, event, count) -> count + 1,
-                Materialized.<String, Long, KeyValueStore<Bytes, byte[]>>as(STATS_STORE)
+                Materialized.<String, Long, WindowStore<Bytes, byte[]>>as(STATS_STORE)
                     .withKeySerde(Serdes.String())
                     .withValueSerde(Serdes.Long())
             );

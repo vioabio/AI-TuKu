@@ -74,7 +74,6 @@ public class PictureController {
      * 限流：20次/分钟
      */
     @PostMapping("/upload")
-    @SaSpaceCheckPermission(value = SpaceUserPermissionConstant.PICTURE_UPLOAD)
     @RateLimit(rate = 20, interval = 1, timeUnit = TimeUnit.MINUTES,
                message = "上传请求过于频繁，请稍后再试")
     public BaseResponse<PictureVO> uploadPicture(
@@ -90,7 +89,6 @@ public class PictureController {
      * 通过 URL 上传图片（可重新上传）
      */
     @PostMapping("/upload/url")
-    @SaSpaceCheckPermission(value = SpaceUserPermissionConstant.PICTURE_UPLOAD)
     public BaseResponse<PictureVO> uploadPictureByUrl(
             @RequestBody PictureUploadRequest pictureUploadRequest,
             HttpServletRequest request) {
@@ -128,7 +126,6 @@ public class PictureController {
     }
 
     @PostMapping("/delete")
-    @SaSpaceCheckPermission(value = SpaceUserPermissionConstant.PICTURE_DELETE)
     public BaseResponse<Boolean> deletePicture(@RequestBody DeleteRequest deleteRequest
             , HttpServletRequest request) {
         if (deleteRequest == null || deleteRequest.getId() <= 0) {
@@ -184,6 +181,8 @@ public class PictureController {
 
     /**
      * 根据 id 获取图片（封装类）
+     * <p>公共图库图片（spaceId=null）无需登录即可查看；
+     * 私有/团队空间图片需登录并校验 PICTURE_VIEW 权限</p>
      */
     @GetMapping("/get/vo")
     public BaseResponse<PictureVO> getPictureVOById(long id, HttpServletRequest request) {
@@ -192,9 +191,9 @@ public class PictureController {
         Picture picture = pictureApplicationService.getById(id);
         ThrowUtils.throwIf(picture == null, ErrorCode.NOT_FOUND_ERROR);
         // 权限校验：公共图库所有人可看，私有/团队空间校验 PICTURE_VIEW 权限
-        User loginUser = userApplicationService.getLoginUser(request);
         Long spaceId = picture.getSpaceId();
         if (spaceId != null) {
+            User loginUser = userApplicationService.getLoginUser(request);
             boolean hasPermission = StpKit.SPACE.hasPermission(
                     SpaceUserPermissionConstant.PICTURE_VIEW);
             ThrowUtils.throwIf(!hasPermission, ErrorCode.NO_AUTH_ERROR);
@@ -300,7 +299,6 @@ public class PictureController {
      * 编辑图片（给用户使用）
      */
     @PostMapping("/edit")
-    @SaSpaceCheckPermission(value = SpaceUserPermissionConstant.PICTURE_EDIT)
     public BaseResponse<Boolean> editPicture(@RequestBody PictureEditRequest pictureEditRequest, HttpServletRequest request) {
         if (pictureEditRequest == null || pictureEditRequest.getId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);

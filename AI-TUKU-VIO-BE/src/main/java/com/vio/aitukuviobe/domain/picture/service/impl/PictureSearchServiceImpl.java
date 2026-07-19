@@ -22,6 +22,7 @@ import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -42,12 +43,14 @@ import java.util.stream.Collectors;
 @Service
 public class PictureSearchServiceImpl implements PictureSearchService {
 
+    @Lazy
     @Resource
     private PictureEsRepository pictureEsRepository;
 
     @Resource
     private PictureRepository pictureRepository;
 
+    @Lazy
     @Resource
     private ElasticsearchRestTemplate elasticsearchRestTemplate;
 

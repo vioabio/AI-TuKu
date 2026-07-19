@@ -7,17 +7,17 @@
       :loading="loading"
     >
       <template #renderItem="{ item: picture }">
-        <a-list-item style="padding: 0">
+        <a-list-item>
           <!-- 单张图片 -->
           <a-card hoverable @click="doClickPicture(picture)">
             <template #cover>
-              <LazyImage
-                :alt="picture.name ?? '图片'"
-                :src="picture.thumbnailUrl ?? picture.url"
-                :width="360"
-                :height="180"
-                fit="cover"
-              />
+              <div class="card-cover">
+                <LazyImage
+                  :alt="picture.name ?? '图片'"
+                  :src="picture.thumbnailUrl ?? picture.url"
+                  fit="cover"
+                />
+              </div>
             </template>
             <a-card-meta :title="picture.name">
               <template #description>
@@ -109,4 +109,39 @@ const doDelete = async (picture: API.PictureVO, e: Event) => {
 }
 </script>
 
-<style scoped></style>
+<style scoped>
+.picture-list :deep(.ant-list-items) {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+/* 统一卡片高度，防止参差不齐 */
+.picture-list :deep(.ant-card) {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.picture-list :deep(.ant-card-cover) {
+  flex-shrink: 0;
+}
+
+/* 封面容器：固定 2:1 宽高比，撑满卡片宽度 */
+.card-cover {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 2 / 1;
+  overflow: hidden;
+}
+
+/* 确保 LazyImage 填满封面容器 */
+.card-cover :deep(.lazy-image-container) {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* 卡片主体撑满剩余空间，使底部标签对齐 */
+.picture-list :deep(.ant-card-body) {
+  flex: 1;
+}
+</style>

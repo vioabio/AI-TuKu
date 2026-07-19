@@ -1,28 +1,32 @@
 package com.vio.aitukuviobe.infrastructure.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
-import org.springframework.boot.jackson.JsonComponent;
+import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
+import org.springframework.context.annotation.Configuration;
 
 /**
- * Spring MVC Json 配置
+ * Jackson 序列化配置
+ * <p>
+ * 核心功能：将 Long 类型序列化为 String，避免 JavaScript Number 精度丢失。
+ * <p>
+ * 背景：MyBatis-Plus ASSIGN_ID 生成的 Snowflake ID 为 19 位数字，
+ * 超出 JS Number 安全整数范围 (2^53-1 ≈ 9e15，仅 16 位)，
+ * 导致前端 Number() 解析后 ID 末尾数字改变，查询失败。
+ *
+ * @author vivin
  */
-@JsonComponent
+@Configuration
 public class JsonConfig {
 
     /**
-     * 添加 Long 转 json 精度丢失的配置
+     * 全局 Jackson 配置：Long → String（解决 JS 精度丢失）
      */
     @Bean
-    public ObjectMapper jacksonObjectMapper(Jackson2ObjectMapperBuilder builder) {
-        ObjectMapper objectMapper = builder.createXmlMapper(false).build();
-        SimpleModule module = new SimpleModule();
-        module.addSerializer(Long.class, ToStringSerializer.instance);
-        module.addSerializer(Long.TYPE, ToStringSerializer.instance);
-        objectMapper.registerModule(module);
-        return objectMapper;
+    public Jackson2ObjectMapperBuilderCustomizer longToStringCustomizer() {
+        return builder -> {
+            builder.serializerByType(Long.class, ToStringSerializer.instance);
+            builder.serializerByType(Long.TYPE, ToStringSerializer.instance);
+        };
     }
 }
